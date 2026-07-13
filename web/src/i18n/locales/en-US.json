@@ -1,0 +1,41 @@
+{
+  "app": {
+    "title": "System Architect Exam Prep",
+    "subtitle": "Knowledge + Practice"
+  },
+  "nav": {
+    "knowledge": "Knowledge",
+    "practice": "Practice",
+    "wrongQuestions": "Wrong Questions",
+    "stats": "Statistics",
+    "settings": "Settings"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "email": "Email",
+    "sendCode": "Send Code",
+    "verifyCode": "Verification Code",
+    "nickname": "Nickname",
+    "loginButton": "Login / Register",
+    "codeSent": "Code sent"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "knowledge": {
+    "chapters": "Chapters",
+    "points": "Knowledge Points",
+    "search": "Search points"
+  },
+  "practice": {
+    "start": "Start Practice",
+    "submit": "Submit",
+    "next": "Next",
+    "correct": "Correct",
+    "incorrect": "Incorrect"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "app": {
+    "title": "系统架构师备考平台",
+    "subtitle": "知识体系 + 刷题一体化"
+  },
+  "nav": {
+    "knowledge": "知识体系",
+    "practice": "刷题练习",
+    "wrongQuestions": "错题本",
+    "stats": "学习统计",
+    "settings": "设置"
+  },
+  "auth": {
+    "login": "登录",
+    "register": "注册",
+    "logout": "退出登录",
+    "email": "邮箱",
+    "sendCode": "发送验证码",
+    "verifyCode": "验证码",
+    "nickname": "昵称",
+    "loginButton": "登录 / 注册",
+    "codeSent": "验证码已发送"
+  },
+  "theme": {
+    "light": "浅色",
+    "dark": "深色",
+    "system": "跟随系统"
+  },
+  "knowledge": {
+    "chapters": "章节",
+    "points": "知识点",
+    "search": "搜索知识点"
+  },
+  "practice": {
+    "start": "开始练习",
+    "submit": "提交",
+    "next": "下一题",
+    "correct": "正确",
+    "incorrect": "错误"
+  }
+}
