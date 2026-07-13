@@ -3,6 +3,9 @@ import { useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
+import { Button } from '@/components/ui/button';
+import { Field, Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 export function LoginPage() {
   const { t } = useTranslation();
@@ -46,70 +49,49 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="w-full max-w-sm space-y-6 rounded-lg border border-border bg-card p-8">
-        <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-bold">{t('app.title')}</h1>
-          <p className="text-sm text-muted-foreground">{t('app.subtitle')}</p>
-        </div>
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-sm">
+        <CardHeader>
+          <CardTitle className="text-center">{t('app.title')}</CardTitle>
+          <CardDescription className="text-center">{t('app.subtitle')}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {error && (
+            <div className="rounded-md bg-destructive/10 px-4 py-2 text-sm text-destructive">
+              {error}
+            </div>
+          )}
 
-        {error && (
-          <div className="rounded-md bg-destructive/10 px-4 py-2 text-sm text-destructive">
-            {error}
-          </div>
-        )}
-
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium text-foreground">
-              {t('auth.email')}
-            </label>
-            <input
-              id="email"
+          <Field label={t('auth.email')}>
+            <Input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
               placeholder="you@example.com"
             />
-          </div>
+          </Field>
 
-          <div className="space-y-2">
-            <label htmlFor="code" className="text-sm font-medium text-foreground">
-              {t('auth.verifyCode')}
-            </label>
+          <Field label={t('auth.verifyCode')}>
             <div className="flex gap-2">
-              <input
-                id="code"
-                type="text"
+              <Input
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 maxLength={6}
-                className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
                 placeholder="123456"
+                className="flex-1"
               />
-              <button
-                type="button"
-                onClick={sendCode}
-                disabled={loading || !email}
-                className="rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80 disabled:opacity-50"
-              >
+              <Button variant="secondary" onClick={sendCode} disabled={loading || !email}>
                 {t('auth.sendCode')}
-              </button>
+              </Button>
             </div>
             {codeSent && <p className="text-xs text-muted-foreground">{t('auth.codeSent')}</p>}
-          </div>
+          </Field>
 
-          <button
-            type="button"
-            onClick={verifyLogin}
-            disabled={loading || !email || !code}
-            className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-50"
-          >
+          <Button onClick={verifyLogin} disabled={loading || !email || !code} className="w-full">
             {t('auth.loginButton')}
-          </button>
-        </div>
-      </div>
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }

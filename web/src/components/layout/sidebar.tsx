@@ -3,11 +3,11 @@ import { Link, useRouterState } from '@tanstack/react-router';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { key: 'nav.knowledge', path: '/knowledge', icon: '📚' },
-  { key: 'nav.practice', path: '/practice', icon: '✏️' },
-  { key: 'nav.wrongQuestions', path: '/wrong-questions', icon: '❌' },
-  { key: 'nav.stats', path: '/stats', icon: '📊' },
-  { key: 'nav.settings', path: '/settings', icon: '⚙️' },
+  { key: 'nav.knowledge', path: '/knowledge', icon: '\uD83D\uDCDA' },
+  { key: 'nav.practice', path: '/practice', icon: '\u270F\uFE0F' },
+  { key: 'nav.wrongQuestions', path: '/wrong-questions', icon: '\u274C' },
+  { key: 'nav.stats', path: '/stats', icon: '\uD83D\uDCCA' },
+  { key: 'nav.settings', path: '/settings', icon: '\u2699\uFE0F' },
 ];
 
 export function Sidebar() {

@@ -12,6 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedWrongQuestionsIndexRouteImport } from './routes/_authenticated/wrong-questions/index'
+import { Route as AuthenticatedStatsIndexRouteImport } from './routes/_authenticated/stats/index'
+import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
+import { Route as AuthenticatedPracticeIndexRouteImport } from './routes/_authenticated/practice/index'
+import { Route as AuthenticatedKnowledgeIndexRouteImport } from './routes/_authenticated/knowledge/index'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -27,27 +32,94 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedWrongQuestionsIndexRoute =
+  AuthenticatedWrongQuestionsIndexRouteImport.update({
+    id: '/wrong-questions/',
+    path: '/wrong-questions/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedStatsIndexRoute = AuthenticatedStatsIndexRouteImport.update({
+  id: '/stats/',
+  path: '/stats/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSettingsIndexRoute =
+  AuthenticatedSettingsIndexRouteImport.update({
+    id: '/settings/',
+    path: '/settings/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPracticeIndexRoute =
+  AuthenticatedPracticeIndexRouteImport.update({
+    id: '/practice/',
+    path: '/practice/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedKnowledgeIndexRoute =
+  AuthenticatedKnowledgeIndexRouteImport.update({
+    id: '/knowledge/',
+    path: '/knowledge/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
+  '/knowledge/': typeof AuthenticatedKnowledgeIndexRoute
+  '/practice/': typeof AuthenticatedPracticeIndexRoute
+  '/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/stats/': typeof AuthenticatedStatsIndexRoute
+  '/wrong-questions/': typeof AuthenticatedWrongQuestionsIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/': typeof AuthenticatedIndexRoute
+  '/knowledge': typeof AuthenticatedKnowledgeIndexRoute
+  '/practice': typeof AuthenticatedPracticeIndexRoute
+  '/settings': typeof AuthenticatedSettingsIndexRoute
+  '/stats': typeof AuthenticatedStatsIndexRoute
+  '/wrong-questions': typeof AuthenticatedWrongQuestionsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/knowledge/': typeof AuthenticatedKnowledgeIndexRoute
+  '/_authenticated/practice/': typeof AuthenticatedPracticeIndexRoute
+  '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/_authenticated/stats/': typeof AuthenticatedStatsIndexRoute
+  '/_authenticated/wrong-questions/': typeof AuthenticatedWrongQuestionsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/knowledge/'
+    | '/practice/'
+    | '/settings/'
+    | '/stats/'
+    | '/wrong-questions/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/'
-  id: '__root__' | '/_authenticated' | '/login' | '/_authenticated/'
+  to:
+    | '/login'
+    | '/'
+    | '/knowledge'
+    | '/practice'
+    | '/settings'
+    | '/stats'
+    | '/wrong-questions'
+  id:
+    | '__root__'
+    | '/_authenticated'
+    | '/login'
+    | '/_authenticated/'
+    | '/_authenticated/knowledge/'
+    | '/_authenticated/practice/'
+    | '/_authenticated/settings/'
+    | '/_authenticated/stats/'
+    | '/_authenticated/wrong-questions/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -78,15 +150,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/wrong-questions/': {
+      id: '/_authenticated/wrong-questions/'
+      path: '/wrong-questions'
+      fullPath: '/wrong-questions/'
+      preLoaderRoute: typeof AuthenticatedWrongQuestionsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/stats/': {
+      id: '/_authenticated/stats/'
+      path: '/stats'
+      fullPath: '/stats/'
+      preLoaderRoute: typeof AuthenticatedStatsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings/': {
+      id: '/_authenticated/settings/'
+      path: '/settings'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/practice/': {
+      id: '/_authenticated/practice/'
+      path: '/practice'
+      fullPath: '/practice/'
+      preLoaderRoute: typeof AuthenticatedPracticeIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/knowledge/': {
+      id: '/_authenticated/knowledge/'
+      path: '/knowledge'
+      fullPath: '/knowledge/'
+      preLoaderRoute: typeof AuthenticatedKnowledgeIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedKnowledgeIndexRoute: typeof AuthenticatedKnowledgeIndexRoute
+  AuthenticatedPracticeIndexRoute: typeof AuthenticatedPracticeIndexRoute
+  AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
+  AuthenticatedStatsIndexRoute: typeof AuthenticatedStatsIndexRoute
+  AuthenticatedWrongQuestionsIndexRoute: typeof AuthenticatedWrongQuestionsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedKnowledgeIndexRoute: AuthenticatedKnowledgeIndexRoute,
+  AuthenticatedPracticeIndexRoute: AuthenticatedPracticeIndexRoute,
+  AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
+  AuthenticatedStatsIndexRoute: AuthenticatedStatsIndexRoute,
+  AuthenticatedWrongQuestionsIndexRoute: AuthenticatedWrongQuestionsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

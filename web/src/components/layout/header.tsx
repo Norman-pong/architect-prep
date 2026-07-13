@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useThemeStore } from '@/stores/theme-store';
 import { useAuthStore } from '@/stores/auth-store';
+import { Button } from '@/components/ui/button';
 
 export function Header() {
   const { t } = useTranslation();
@@ -12,30 +13,25 @@ export function Header() {
       <div />
 
       <div className="flex items-center gap-4">
-        <button
-          type="button"
-          onClick={toggleTheme}
-          className="flex h-9 w-9 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          aria-label="Toggle theme"
-        >
-          {theme === 'dark' ? '☀️' : '🌙'}
-        </button>
+        <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
+          {theme === 'dark' ? '\u2600\uFE0F' : '\uD83C\uDF19'}
+        </Button>
 
         {auth.user && (
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium text-foreground">
               {auth.user.nickname || auth.user.email}
             </span>
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => {
                 reset();
                 window.location.href = '/login';
               }}
-              className="text-sm text-muted-foreground transition-colors hover:text-destructive"
             >
               {t('auth.logout')}
-            </button>
+            </Button>
           </div>
         )}
       </div>
