@@ -1,4 +1,5 @@
 import { cva, type VariantProps } from 'class-variance-authority';
+import { Button as BaseButton } from '@base-ui/react/button';
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
@@ -7,7 +8,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: 'bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80',
+        primary: 'bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary/80',
         secondary:
           'bg-secondary text-secondary-foreground hover:bg-secondary/80 active:bg-secondary/70',
         outline:
@@ -30,13 +31,15 @@ const buttonVariants = cva(
   },
 );
 
-export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
-  VariantProps<typeof buttonVariants>;
+export type ButtonProps = Omit<React.ComponentProps<typeof BaseButton>, 'className'> &
+  VariantProps<typeof buttonVariants> & {
+    className?: string;
+  };
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, type = 'button', ...props }, ref) => {
     return (
-      <button
+      <BaseButton
         ref={ref}
         type={type}
         className={cn(buttonVariants({ variant, size }), className)}
