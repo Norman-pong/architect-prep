@@ -1,0 +1,30 @@
+# Go
+server/data/
+server/architect-prep
+server/.env
+
+# Frontend
+web/node_modules/
+web/dist/
+web/.env
+
+# Docker
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.*
+!.env.example
