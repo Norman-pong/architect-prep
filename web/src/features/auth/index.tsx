@@ -6,6 +6,64 @@ import { useAuthStore } from '@/stores/auth-store';
 import { Button } from '@/components/ui/button';
 import { Field, Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+
+function MailIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m3 7 9 6 9-6" />
+    </svg>
+  );
+}
+
+function KeyIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M21 2 19 4M14.5 6.5 16 8M17.5 3.5 19 5M21 6 16 11l-2-2 5-5z" />
+      <path d="m13 13 6 6-4 4-6-6v-4h4z" />
+      <circle cx="11" cy="11" r="2" />
+    </svg>
+  );
+}
+
+function SpinnerIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={cn('animate-spin', className)}
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+    </svg>
+  );
+}
 
 export function LoginPage() {
   const { t } = useTranslation();
@@ -15,12 +73,13 @@ export function LoginPage() {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [codeSent, setCodeSent] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isSendingCode, setIsSendingCode] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState('');
 
   async function sendCode() {
     if (!email) return;
-    setLoading(true);
+    setIsSendingCode(true);
     setError('');
     try {
       await api.post('/auth/send-code', { email });
@@ -28,13 +87,13 @@ export function LoginPage() {
     } catch {
       setError('Failed to send code');
     } finally {
-      setLoading(false);
+      setIsSendingCode(false);
     }
   }
 
   async function verifyLogin() {
     if (!email || !code) return;
-    setLoading(true);
+    setIsVerifying(true);
     setError('');
     try {
       const resp = await api.post('/auth/verify-login', { email, code });
@@ -44,18 +103,32 @@ export function LoginPage() {
     } catch {
       setError('Invalid code');
     } finally {
-      setLoading(false);
+      setIsVerifying(false);
     }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle className="text-center">{t('app.title')}</CardTitle>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
+      {/* Decorative background */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-24 -top-24 size-72 rounded-full bg-primary/15 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-32 -right-24 size-96 rounded-full bg-accent/30 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute right-1/4 top-1/3 size-40 rounded-full bg-primary/10 blur-2xl"
+      />
+
+      <Card className="relative w-full max-w-sm shadow-lg">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-center text-xl">{t('app.title')}</CardTitle>
           <CardDescription className="text-center">{t('app.subtitle')}</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-5">
           {error && (
             <div className="rounded-md bg-destructive/10 px-4 py-2 text-sm text-destructive">
               {error}
@@ -63,32 +136,52 @@ export function LoginPage() {
           )}
 
           <Field label={t('auth.email')}>
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-            />
+            <div className="relative">
+              <MailIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="pl-9"
+              />
+            </div>
           </Field>
 
           <Field label={t('auth.verifyCode')}>
             <div className="flex gap-2">
-              <Input
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                maxLength={6}
-                placeholder="123456"
-                className="flex-1"
-              />
-              <Button variant="secondary" onClick={sendCode} disabled={loading || !email}>
-                {t('auth.sendCode')}
+              <div className="relative flex-1">
+                <KeyIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  maxLength={6}
+                  placeholder="123456"
+                  className="pl-9"
+                />
+              </div>
+              <Button
+                variant="secondary"
+                onClick={sendCode}
+                disabled={isSendingCode || !email}
+                className="shrink-0"
+              >
+                {isSendingCode ? (
+                  <SpinnerIcon className="size-4" />
+                ) : (
+                  t('auth.sendCode')
+                )}
               </Button>
             </div>
             {codeSent && <p className="text-xs text-muted-foreground">{t('auth.codeSent')}</p>}
           </Field>
 
-          <Button onClick={verifyLogin} disabled={loading || !email || !code} className="w-full">
-            {t('auth.loginButton')}
+          <Button
+            onClick={verifyLogin}
+            disabled={isVerifying || !email || !code}
+            className="w-full"
+          >
+            {isVerifying ? <SpinnerIcon className="size-4" /> : t('auth.loginButton')}
           </Button>
         </CardContent>
       </Card>

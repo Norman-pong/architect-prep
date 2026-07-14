@@ -30,20 +30,20 @@ export function StatsPage() {
   const accuracyPct = Math.round(stats.accuracy * 100);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <h1 className="text-2xl font-bold">学习统计</h1>
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card>
           <CardContent className="pt-6">
-            <div className="text-3xl font-bold">{stats.total_questions}</div>
+            <div className="text-2xl font-bold">{stats.total_questions}</div>
             <p className="text-sm text-muted-foreground">总答题数</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-3xl font-bold text-success">{stats.correct_count}</div>
+            <div className="text-2xl font-bold text-success">{stats.correct_count}</div>
             <p className="text-sm text-muted-foreground">正确数</p>
           </CardContent>
         </Card>
@@ -51,7 +51,7 @@ export function StatsPage() {
           <CardContent className="pt-6">
             <div
               className={cn(
-                'text-3xl font-bold',
+                'text-2xl font-bold',
                 accuracyPct >= 60 ? 'text-success' : 'text-destructive',
               )}
             >
