@@ -11,6 +11,7 @@ import (
 	"github.com/normanway/architect-prep/internal/db"
 	"github.com/normanway/architect-prep/internal/knowledge"
 	"github.com/normanway/architect-prep/internal/middleware"
+	"github.com/normanway/architect-prep/internal/practice"
 	"github.com/normanway/architect-prep/internal/user"
 )
 
@@ -60,13 +61,14 @@ func Register(cfg *config.Config) *gin.Engine {
 		knowledgeHandler.RegisterRoutes(knowledgeGroup)
 	}
 
-	// Practice routes (JWT required) — placeholder
+	// Practice routes (JWT required)
+	practiceRepo := practice.NewRepository(database)
+	practiceService := practice.NewService(practiceRepo)
+	practiceHandler := practice.NewHandler(practiceRepo, practiceService)
 	practiceGroup := v1.Group("/practice")
 	practiceGroup.Use(middleware.JWTAuth())
 	{
-		practiceGroup.GET("/ping", func(c *gin.Context) {
-			middleware.Success(c, gin.H{"module": "practice"})
-		})
+		practiceHandler.RegisterRoutes(practiceGroup)
 	}
 
 	return r
