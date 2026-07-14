@@ -11,7 +11,7 @@
 | 文档类型 | 最新文档 | 状态 | 说明 |
 | -------- | -------- | ---- | ---- |
 | Spec | [2026-07-13-architect-prep](spec/2026-07-13-architect-prep.md) | 已提纯 PRD | 项目初始需求输入 |
-| PRD | [备考平台 PRD（已归档）](prd/archive/2026-07-13-architect-prep-platform.md) | 已归档 | 备考平台完整需求 |
+| PRD | [FSRS 遗忘曲线复习系统](prd/2026-07-14-fsrs-review-system.md) | 活跃 | FSRS 复习系统（[备考平台 PRD 已归档](prd/archive/2026-07-13-architect-prep-platform.md)） |
 | Phase | [2026-07-14 知识体系入库与刷题核心](phase/2026-07-14-knowledge-and-practice.md) | 已完成 | 知识入库+刷题 |
 | 架构总览 | [架构总览](architecture/overview.md) | 当前 | 系统架构全景 |
 
@@ -24,8 +24,9 @@
 ## 产品需求文档（PRD）
 
 ### 活跃 PRD
-
-_暂无活跃 PRD。新需求请创建新 PRD。_
+| 日期 | 文档名称 | 状态 | 对应 Phase | 说明 |
+| ---------- | -------- | ---- | ---------- | ---- |
+| 2026-07-14 | [FSRS 遗忘曲线复习系统](prd/2026-07-14-fsrs-review-system.md) | 活跃 | [Phase 3](phase/2026-07-14-fsrs-review-system.md) | FSRS 间隔重复+知识卡片 |
 
 ### 已归档 PRD
 
@@ -39,6 +40,7 @@ _暂无活跃 PRD。新需求请创建新 PRD。_
 | ---------- | -------- | ---- | -------- | ---- |
 | 2026-07-13 | [项目骨架搭建](phase/2026-07-13-foundation-skeleton.md) | 已完成 | [PRD（已归档）](prd/archive/2026-07-13-architect-prep-platform.md) | 前后端+Docker 骨架 |
 | 2026-07-14 | [知识体系入库与刷题核心](phase/2026-07-14-knowledge-and-practice.md) | 已完成 | [PRD（已归档）](prd/archive/2026-07-13-architect-prep-platform.md) | 知识入库+刷题功能 |
+| 2026-07-14 | [FSRS 遗忘曲线复习系统](phase/2026-07-14-fsrs-review-system.md) | 进行中 | [FSRS PRD](prd/2026-07-14-fsrs-review-system.md) | FSRS6 间隔重复+知识卡片 |
 
 ## 架构文档（Architecture）
 
@@ -61,9 +63,9 @@ _暂无活跃 PRD。新需求请创建新 PRD。_
 
 ## 文档统计
 
-- 活跃 PRD：0
+- 活跃 PRD：1
 - 归档 PRD：1
-- Phase 总数：2
+- Phase 总数：3
 - 架构文档：4
 - 参考资料：1
 
