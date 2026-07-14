@@ -2,6 +2,7 @@ package seed
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -43,7 +44,28 @@ func Run(dbPath string) error {
 		}
 		chapterCount++
 	}
-
 	log.Printf("seed complete: %d chapters, %d knowledge points inserted", chapterCount, pointCount)
+
+	// Insert test user for development
+	_, _ = database.ExecContext(ctx,
+		`INSERT OR IGNORE INTO users (id, email, nickname) VALUES (1, 'test@architect.dev', '测试用户')`)
+
+	// Insert seed questions
+	questionCount := 0
+	for _, q := range Questions {
+		optionsJSON, _ := json.Marshal(q.Options)
+		answerKeysJSON, _ := json.Marshal(q.AnswerKeys)
+		_, err := database.ExecContext(ctx,
+			`INSERT INTO questions (chapter_id, exam_type, question_type, content, options, answer_keys, explanation, source, difficulty)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			q.ChapterID, q.ExamType, q.QuestionType, q.Content,
+			string(optionsJSON), string(answerKeysJSON),
+			q.Explanation, q.Source, q.Difficulty)
+		if err != nil {
+			return fmt.Errorf("insert question: %w", err)
+		}
+		questionCount++
+	}
+	log.Printf("seed complete: %d questions inserted", questionCount)
 	return nil
 }
