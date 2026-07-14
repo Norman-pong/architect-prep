@@ -3,6 +3,7 @@ package auth
 import (
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -24,6 +25,9 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
 	rg.POST("/send-code", h.SendCode)
 	rg.POST("/verify-login", h.VerifyLogin)
 	rg.GET("/me", middleware.JWTAuth(), h.Me)
+	if os.Getenv("DEV_ECHO_CODE") == "1" {
+		rg.GET("/_dev_code", h.DevCode)
+	}
 }
 
 // SendCode 发送验证码
@@ -92,4 +96,14 @@ func (h *Handler) Me(c *gin.Context) {
 	}
 
 	middleware.Success(c, user)
+}
+
+// DevCode dev 模式回显验证码
+func (h *Handler) DevCode(c *gin.Context) {
+	code, ok := h.service.InspectCode(c.Query("email"))
+	if !ok {
+		middleware.Error(c, http.StatusNotFound, "no code")
+		return
+	}
+	middleware.Success(c, gin.H{"code": code})
 }

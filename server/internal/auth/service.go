@@ -99,6 +99,11 @@ func (s *AuthService) JWTSecret() string {
 	return string(s.jwtSecret)
 }
 
+// InspectCode 读取验证码（不删除），用于 dev 模式回显
+func (s *AuthService) InspectCode(email string) (string, bool) {
+	return s.codeStore.Inspect(email)
+}
+
 // generateRandomCode 生成 n 位随机数字验证码
 func generateRandomCode(n int) (string, error) {
 	const digits = "0123456789"

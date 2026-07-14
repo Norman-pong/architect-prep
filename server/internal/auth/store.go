@@ -62,6 +62,21 @@ func (s *CodeStore) VerifyCode(email, code string) error {
 	return nil
 }
 
+// Inspect 读取验证码（不删除），用于 dev 模式回显
+func (s *CodeStore) Inspect(email string) (string, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	v, ok := s.codes[email]
+	if !ok {
+		return "", false
+	}
+	if time.Now().After(v.expired) {
+		return "", false
+	}
+	return v.code, true
+}
+
 // cleanupExpired 清理过期验证码
 func (s *CodeStore) cleanupExpired() {
 	s.mu.Lock()
