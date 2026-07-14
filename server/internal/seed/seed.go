@@ -2,6 +2,7 @@ package seed
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -9,20 +10,13 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-
-	"github.com/normanway/architect-prep/internal/db"
 )
 
-// Run inserts 20 chapters and their knowledge points into the database.
+// Run inserts 20 chapters, knowledge points, and seed questions into the database.
 // Knowledge point content is loaded from markdown/chXX.md files if available,
 // falling back to the plain text in data.go.
-func Run(dbPath string) error {
-	database, err := db.NewDB(dbPath)
-	if err != nil {
-		return fmt.Errorf("connect database: %w", err)
-	}
-	defer database.Close()
-
+// The database must already be open; Run does not open or close it.
+func Run(database *sql.DB) error {
 	ctx := context.Background()
 
 	chapterCount, pointCount := 0, 0

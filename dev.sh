@@ -44,18 +44,14 @@ command -v go >/dev/null 2>&1   || { echo "❌ 需要 Go"; exit 1; }
 command -v bun >/dev/null 2>&1  || { echo "❌ 需要 Bun"; exit 1; }
 command -v vp >/dev/null 2>&1   || { echo "❌ 需要 vp (vite-plus)"; exit 1; }
 
-# ── 2. 初始化数据库（首次或 --reset 时） ─────────────────────
-if [ ! -f "$DB_PATH" ] || [ "${1:-}" = "--reset" ]; then
-  if [ "${1:-}" = "--reset" ]; then
-    warn "重置数据库: $DB_PATH"
-    rm -f "$DB_PATH"
-  else
-    info "首次启动，初始化数据库..."
-  fi
-  (cd "$SERVER_DIR" && go run ./cmd/seed -db "$DB_PATH")
-  log "数据库就绪: $DB_PATH"
-else
+# ── 2. 数据库（--reset 时删除，服务器启动时自动初始化） ──────
+if [ "${1:-}" = "--reset" ]; then
+  warn "重置数据库: $DB_PATH"
+  rm -f "$DB_PATH"
+elif [ -f "$DB_PATH" ]; then
   info "数据库已存在: $DB_PATH (用 --reset 重置)"
+else
+  info "数据库不存在，服务器启动时将自动初始化"
 fi
 
 # ── 3. 构建后端二进制 ────────────────────────────────────────

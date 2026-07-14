@@ -16,6 +16,7 @@ import (
 	"github.com/normanway/architect-prep/internal/learning"
 	"github.com/normanway/architect-prep/internal/middleware"
 	"github.com/normanway/architect-prep/internal/practice"
+	"github.com/normanway/architect-prep/internal/seed"
 	"github.com/normanway/architect-prep/internal/user"
 )
 
@@ -26,6 +27,9 @@ func Register(cfg *config.Config) *gin.Engine {
 	if err != nil {
 		log.Fatalf("failed to connect database: %v", err)
 	}
+
+	// Auto-seed if database is empty (first run)
+	seed.AutoSeedIfEmpty(database, "data/bank.json")
 
 	r := gin.New()
 	r.Use(gin.Logger())
