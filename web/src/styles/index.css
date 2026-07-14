@@ -226,3 +226,59 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background-color: var(--color-muted-foreground);
 }
+
+/* ============================================
+ * Knowledge Prose — responsive Markdown container
+ * ============================================ */
+
+.knowledge-prose {
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+}
+
+@media (min-width: 768px) {
+  .knowledge-prose {
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+  }
+}
+
+.knowledge-prose pre {
+  font-size: 13px;
+  overflow-x: auto;
+}
+
+@media (min-width: 768px) {
+  .knowledge-prose pre {
+    font-size: var(--text-sm);
+  }
+}
+
+.knowledge-prose table {
+  font-size: var(--text-xs);
+  overflow-x: auto;
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .knowledge-prose table {
+    font-size: var(--text-sm);
+  }
+}
+
+.knowledge-prose ul,
+.knowledge-prose ol {
+  padding-left: 1.25rem;
+}
+
+.knowledge-prose blockquote {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+@media (max-width: 767px) {
+  .knowledge-prose svg {
+    max-width: 100%;
+    height: auto !important;
+  }
+}

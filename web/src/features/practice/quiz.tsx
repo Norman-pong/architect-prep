@@ -207,8 +207,12 @@ export function PracticePage() {
                     showResult &&
                       isWrongSelected &&
                       'border-destructive bg-destructive text-destructive-foreground',
-                    !showResult && isSelected && 'border-primary bg-primary text-primary-foreground',
-                    !showResult && !isSelected && 'border-border bg-background text-muted-foreground',
+                    !showResult &&
+                      isSelected &&
+                      'border-primary bg-primary text-primary-foreground',
+                    !showResult &&
+                      !isSelected &&
+                      'border-border bg-background text-muted-foreground',
                   )}
                 >
                   {showResult && isCorrect ? (
@@ -256,7 +260,9 @@ export function PracticePage() {
         <Card
           className={cn(
             'border-2',
-            submitResult.is_correct ? 'border-success/30 bg-success/5' : 'border-destructive/30 bg-destructive/5',
+            submitResult.is_correct
+              ? 'border-success/30 bg-success/5'
+              : 'border-destructive/30 bg-destructive/5',
           )}
         >
           <CardHeader>
@@ -313,9 +319,7 @@ export function PracticePage() {
               <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 解析
               </p>
-              <p className="text-sm leading-relaxed text-foreground">
-                {submitResult.explanation}
-              </p>
+              <p className="text-sm leading-relaxed text-foreground">{submitResult.explanation}</p>
             </div>
           </CardContent>
         </Card>

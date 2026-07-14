@@ -73,8 +73,7 @@ export function Sidebar({ mobileOpen = false, onNavigate, onClose }: SidebarProp
 
         <nav className="flex-1 space-y-1 p-3">
           {navItems.map((item) => {
-            const isActive =
-              pathname === item.path || pathname.startsWith(`${item.path}/`);
+            const isActive = pathname === item.path || pathname.startsWith(`${item.path}/`);
             const Icon = item.icon;
             return (
               <Link

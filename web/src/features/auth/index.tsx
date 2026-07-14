@@ -97,7 +97,7 @@ export function LoginPage() {
     setError('');
     try {
       const resp = await api.post('/auth/verify-login', { email, code });
-      const { user, token } = resp.data;
+      const { user, token } = resp.data.data;
       setUser(user, token);
       void navigate({ to: '/' });
     } catch {
@@ -166,11 +166,7 @@ export function LoginPage() {
                 disabled={isSendingCode || !email}
                 className="shrink-0"
               >
-                {isSendingCode ? (
-                  <SpinnerIcon className="size-4" />
-                ) : (
-                  t('auth.sendCode')
-                )}
+                {isSendingCode ? <SpinnerIcon className="size-4" /> : t('auth.sendCode')}
               </Button>
             </div>
             {codeSent && <p className="text-xs text-muted-foreground">{t('auth.codeSent')}</p>}

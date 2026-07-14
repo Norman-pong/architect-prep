@@ -134,4 +134,33 @@ CREATE INDEX IF NOT EXISTS idx_questions_chapter ON questions(chapter_id);
 CREATE INDEX IF NOT EXISTS idx_practice_user ON practice_records(user_id);
 CREATE INDEX IF NOT EXISTS idx_wrong_user ON wrong_questions(user_id);
 CREATE INDEX IF NOT EXISTS idx_favorites_user ON favorites(user_id);
+
+CREATE TABLE IF NOT EXISTS learning_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    point_id INTEGER NOT NULL,
+    chapter_id INTEGER NOT NULL,
+    first_viewed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_viewed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    view_count INTEGER NOT NULL DEFAULT 1,
+    mastered INTEGER NOT NULL DEFAULT 0,
+    mastered_at DATETIME,
+    UNIQUE (user_id, point_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (point_id) REFERENCES knowledge_points(id) ON DELETE CASCADE,
+    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_lr_user ON learning_records(user_id);
+CREATE INDEX IF NOT EXISTS idx_lr_user_chapter ON learning_records(user_id, chapter_id);
+CREATE INDEX IF NOT EXISTS idx_lr_user_mastered ON learning_records(user_id, mastered);
+
+CREATE TABLE IF NOT EXISTS last_progress (
+    user_id INTEGER PRIMARY KEY,
+    chapter_id INTEGER NOT NULL,
+    point_id INTEGER NOT NULL,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE,
+    FOREIGN KEY (point_id) REFERENCES knowledge_points(id) ON DELETE CASCADE
+);
 `

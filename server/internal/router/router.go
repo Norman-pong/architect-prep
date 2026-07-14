@@ -13,6 +13,7 @@ import (
 	"github.com/normanway/architect-prep/internal/config"
 	"github.com/normanway/architect-prep/internal/db"
 	"github.com/normanway/architect-prep/internal/knowledge"
+	"github.com/normanway/architect-prep/internal/learning"
 	"github.com/normanway/architect-prep/internal/middleware"
 	"github.com/normanway/architect-prep/internal/practice"
 	"github.com/normanway/architect-prep/internal/user"
@@ -72,6 +73,16 @@ func Register(cfg *config.Config) *gin.Engine {
 	practiceGroup.Use(middleware.JWTAuth())
 	{
 		practiceHandler.RegisterRoutes(practiceGroup)
+	}
+
+	// Learning routes (JWT required)
+	learningRepo := learning.NewRepository(database)
+	learningService := learning.NewService(learningRepo)
+	learningHandler := learning.NewHandler(learningRepo, learningService)
+	learningGroup := v1.Group("/learning")
+	learningGroup.Use(middleware.JWTAuth())
+	{
+		learningHandler.RegisterRoutes(learningGroup)
 	}
 
 	// Serve frontend static files (SPA mode)

@@ -165,14 +165,19 @@ var Chapters = []ChapterData{
 			{Title: "SOA关键技术", Content: "Web服务(SOAP/WSDL/UDDI)、企业服务总线(ESB)、服务注册与发现、BPEL业务流程编排。"},
 			{Title: "SOA与微服务的区别", Content: "SOA强调企业级集成，使用ESB；微服务强调独立部署，去中心化，每个服务有自己的数据库。"},
 			{Title: "RESTful API设计", Content: "资源用URI标识，用HTTP方法操作(GET/POST/PUT/DELETE)，无状态通信，使用JSON/XML表示。"},
+			{Title: "SOA设计原则", Content: "松耦合、抽象、可重用、自治、无状态。"},
+			{Title: "SOA实施要点", Content: "服务粒度划分、接口契约定义、服务编排、治理策略。"},
 		},
 	},
 	{
 		ChapterNo: 16, Title: "嵌入式系统架构设计理论与实践", Summary: "嵌入式硬件、操作系统、数据库、中间件、开发环境",
 		Points: []KnowledgePoint{
 			{Title: "嵌入式系统特点", Content: "专用性强、实时性要求高、资源受限(内存/CPU)、可靠性要求高、功耗敏感。"},
-			{Title: "嵌入式操作系统", Content: "RTOS实时操作系统：VxWorks、FreeRTOS、uC/OS。通用嵌入式OS：嵌入式Linux、Android、鸿蒙。"},
+			{Title: "嵌入式系统硬件体系结构", Content: "嵌入式处理器(ARM/MIPS)、存储系统、I/O接口、总线架构。"},
 			{Title: "嵌入式软件架构", Content: "层次架构和微内核架构是两种典型模式。GOA通用开放架构提供层次化框架。"},
+			{Title: "嵌入式操作系统", Content: "RTOS实时操作系统：VxWorks、FreeRTOS、uC/OS。通用嵌入式OS：嵌入式Linux、Android、鸿蒙。"},
+			{Title: "嵌入式操作系统内核架构", Content: "宏内核(Linux)、微内核(QNX/Minix)、混合内核。微内核仅保留基本调度和IPC，其他服务在用户态。"},
+			{Title: "嵌入式实时调度算法", Content: "速率单调(RM)、最早截止时间优先(EDF)、最低松弛度优先(LLF)。硬实时需可预测的调度延迟。"},
 			{Title: "嵌入式数据库", Content: "SQLite(文件型)、eXtremeDB(内存型)、Berkeley DB(键值型)。嵌入式数据库嵌入应用程序进程，无需独立服务。"},
 		},
 	},
@@ -180,9 +185,12 @@ var Chapters = []ChapterData{
 		ChapterNo: 17, Title: "通信系统架构设计理论与实践", Summary: "网络架构、组网技术、SDN、网络安全",
 		Points: []KnowledgePoint{
 			{Title: "网络架构分类", Content: "局域网(以太网/WiFi)、广域网(MPLS/SDH)、移动通信网(4G/5G)、存储网络(SAN/NAS)、软件定义网络(SDN)。"},
+			{Title: "局域网网络架构", Content: "核心层、汇聚层、接入层三层架构。VLAN划分广播域，STP防环路。"},
+			{Title: "广域网网络架构", Content: "MPLS VPN、SDH专线、OTN光传输。广域网优化：压缩、缓存、TCP加速。"},
 			{Title: "SDN软件定义网络", Content: "SDN将控制平面与数据平面分离，通过OpenFlow协议集中控制网络。优势：灵活编程、集中管理、快速创新。"},
 			{Title: "网络高可用设计", Content: "冗余设计(双机热备/集群)、链路聚合(LACP)、虚拟路由冗余(VRRP)、负载均衡。"},
 			{Title: "IPv4与IPv6融合", Content: "双栈技术、隧道技术(6to4/ISATAP)、NAT64/DNS64转换技术。"},
+			{Title: "网络构建设计方法", Content: "需求分析、拓扑设计、设备选型、IP地址规划、路由协议选择、安全策略制定。"},
 		},
 	},
 	{
