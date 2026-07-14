@@ -1,6 +1,7 @@
 # Go
 server/data/
 server/architect-prep
+server/tmp/
 server/.env
 
 # Frontend
