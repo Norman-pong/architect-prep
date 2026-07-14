@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearch } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,11 +14,22 @@ export function PracticePage() {
   const [selectedOptions, setSelectedOptions] = useState<Set<string>>(new Set());
   const [submitResult, setSubmitResult] = useState<SubmitResponse | null>(null);
   const queryClient = useQueryClient();
+  const search = useSearch({ from: '/_authenticated/practice/' });
+  const chapterFilter = search.chapter;
+
+  // Reset state when chapter filter changes
+  useEffect(() => {
+    setCurrentIndex(0);
+    setSelectedOptions(new Set());
+    setSubmitResult(null);
+  }, [chapterFilter]);
 
   const { data: questionList, isLoading } = useQuery({
-    queryKey: ['practice-questions'],
+    queryKey: ['practice-questions', chapterFilter],
     queryFn: async () => {
-      const resp = await api.get('/practice/questions', { params: { page: 1, page_size: 20 } });
+      const resp = await api.get('/practice/questions', {
+        params: { chapter_id: chapterFilter ?? undefined, page: 1, page_size: 100 },
+      });
       return resp.data.data as PaginatedResponse<Question>;
     },
   });

@@ -12,6 +12,7 @@ interface DesktopOutlineProps {
   progress: LearningProgress | undefined;
   isLoading: boolean;
   onToggleMastered: (pointId: number, mastered: boolean) => void;
+  onExpandChapter: (chapterId: number) => void;
   pointStatusMap: Map<number, boolean>;
 }
 
@@ -21,26 +22,35 @@ export function DesktopOutline({
   progress,
   isLoading,
   onToggleMastered,
+  onExpandChapter,
   pointStatusMap,
 }: DesktopOutlineProps) {
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
 
-  const toggleExpand = useCallback((id: number) => {
-    setExpandedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  }, []);
+  const toggleExpand = useCallback(
+    (id: number) => {
+      setExpandedIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(id)) {
+          next.delete(id);
+        } else {
+          next.add(id);
+          // Fetch point statuses when expanding
+          onExpandChapter(id);
+        }
+        return next;
+      });
+    },
+    [onExpandChapter],
+  );
 
   const expandAll = useCallback(() => {
     if (!chapters) return;
-    setExpandedIds(new Set(chapters.map((c) => c.id)));
-  }, [chapters]);
+    const allIds = new Set(chapters.map((c) => c.id));
+    setExpandedIds(allIds);
+    // Fetch statuses for all chapters
+    chapters.forEach((c) => onExpandChapter(c.id));
+  }, [chapters, onExpandChapter]);
 
   const collapseAll = useCallback(() => {
     setExpandedIds(new Set());

@@ -1,7 +1,10 @@
 import { useEffect } from 'react';
+import { useNavigate } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
+import { api } from '@/lib/api';
 import { Markdown } from '@/components/markdown';
-import { ChevronLeft, ChevronRight, Search, Menu, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, Menu, Check, FileText } from 'lucide-react';
 import type { Chapter, KnowledgePoint, PointStatus, LearningProgress } from './types';
 import { getChapterProgress, isChapterCompleted } from './hooks';
 
@@ -137,6 +140,9 @@ export function PointReader({
         <Markdown content={point.content} skipFirstHeading />
       </div>
 
+      {/* Chapter exam questions link */}
+      <ChapterExamLink chapterId={chapter.id} chapterNo={chapter.chapter_no} />
+
       {/* Bottom sticky toolbar */}
       <div className="sticky bottom-0 z-30 flex h-14 items-center gap-2 border-t border-border bg-card px-2">
         {/* Prev */}
@@ -196,5 +202,38 @@ export function PointReader({
         </button>
       </div>
     </div>
+  );
+}
+
+function ChapterExamLink({ chapterId, chapterNo }: { chapterId: number; chapterNo: number }) {
+  const navigate = useNavigate();
+  const { data: count } = useQuery({
+    queryKey: ['practice', 'chapter-count', chapterId],
+    queryFn: async () => {
+      const resp = await api.get('/practice/questions', {
+        params: { chapter_id: chapterId, page: 1, page_size: 1 },
+      });
+      return resp.data.data.total as number;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  if (!count || count === 0) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={() => void navigate({ to: '/practice', search: { chapter: chapterNo } })}
+      className="mx-3 mb-2 flex items-center justify-between rounded-lg border border-border bg-muted/30 px-4 py-3 transition-colors hover:bg-muted/60"
+    >
+      <div className="flex items-center gap-2">
+        <FileText className="size-4 text-primary" />
+        <span className="text-sm font-medium text-foreground">本章真题</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-muted-foreground">{count} 题</span>
+        <ChevronRight className="size-4 text-muted-foreground" />
+      </div>
+    </button>
   );
 }

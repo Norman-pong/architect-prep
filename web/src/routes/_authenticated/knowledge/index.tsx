@@ -11,7 +11,6 @@ import { SearchSheet } from '@/features/knowledge/search-sheet';
 import {
   useChapters,
   useChapterPoints,
-  useAllChapterPoints,
   useLearningProgress,
   usePointStatus,
   useSearchKnowledge,
@@ -88,6 +87,8 @@ function KnowledgePage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState(search.q ?? '');
+  // Track which chapters have been expanded on desktop (to load their points)
+  const [expandedChapterIds, setExpandedChapterIds] = useState<Set<number>>(new Set());
 
   // Data queries
   const { data: chapters, isLoading: chaptersLoading } = useChapters();
@@ -98,11 +99,12 @@ function KnowledgePage() {
   const currentChapterId = search.chapter;
   const currentPointId = search.point;
 
-  // Load points for current chapter (for reader view)
+  // Load points for current chapter (for reader view + drawer)
   const { data: currentChapterPoints } = useChapterPoints(currentChapterId);
 
-  // Load all chapter points in parallel (for desktop expand + cross-chapter navigation)
-  const allChapterPoints = useAllChapterPoints(chapters);
+  // Load points for expanded desktop chapters (on-demand)
+  const expandedChapterId = Array.from(expandedChapterIds).find((id) => id !== currentChapterId);
+  const { data: expandedChapterPoints } = useChapterPoints(expandedChapterId);
 
   // Load point status for current point
   const { data: pointStatus } = usePointStatus(currentPointId);
@@ -111,34 +113,30 @@ function KnowledgePage() {
   const recordViewMutation = useRecordView();
   const toggleMasteredMutation = useToggleMastered();
 
-  // Build points map for drawer/desktop from all chapters
+  // Build points map from loaded chapters
   const pointsMap = useMemo(() => {
     const map = new Map<number, KnowledgePoint[]>();
-    if (chapters) {
-      chapters.forEach((ch, idx) => {
-        const pts = allChapterPoints[idx]?.data as KnowledgePoint[] | undefined;
-        if (pts) {
-          map.set(ch.id, pts);
-        }
-      });
-    }
-    // Override with current chapter's freshly loaded points
     if (currentChapterPoints && currentChapterId) {
       map.set(currentChapterId, currentChapterPoints);
     }
-    return map;
-  }, [chapters, allChapterPoints, currentChapterPoints, currentChapterId]);
-
-  // Build mastered status map from progress.mastered_point_ids
-  const pointStatusMap = useMemo(() => {
-    const map = new Map<number, boolean>();
-    if (progress?.mastered_point_ids) {
-      for (const id of progress.mastered_point_ids) {
-        map.set(id, true);
-      }
+    if (expandedChapterPoints && expandedChapterId) {
+      map.set(expandedChapterId, expandedChapterPoints);
     }
     return map;
-  }, [progress]);
+  }, [currentChapterPoints, currentChapterId, expandedChapterPoints, expandedChapterId]);
+
+  // Build mastered status map from progress.per_chapter
+  // Backend returns per_chapter: [{chapter_id, total, mastered}]
+  // We don't have per-point mastered status in the bulk response,
+  // so point-level badges are best-effort (fetched on-demand via usePointStatus)
+  const pointStatusMap = useMemo(() => {
+    const map = new Map<number, boolean>();
+    // If we have pointStatus for the current point, include it
+    if (pointStatus) {
+      map.set(pointStatus.point_id, pointStatus.mastered);
+    }
+    return map;
+  }, [pointStatus]);
 
   // Find current chapter and point objects
   const currentChapter = useMemo(
@@ -189,6 +187,10 @@ function KnowledgePage() {
     },
     [recordViewMutation],
   );
+
+  const handleExpandChapter = useCallback((chapterId: number) => {
+    setExpandedChapterIds((prev) => new Set(prev).add(chapterId));
+  }, []);
 
   // Determine view mode
   const isReading = !!currentPointId && !!currentChapterId;
@@ -269,6 +271,7 @@ function KnowledgePage() {
               progress={progress}
               isLoading={chaptersLoading}
               onToggleMastered={handleToggleMastered}
+              onExpandChapter={handleExpandChapter}
               pointStatusMap={pointStatusMap}
             />
           </CardContent>

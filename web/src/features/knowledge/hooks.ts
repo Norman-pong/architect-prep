@@ -1,4 +1,4 @@
-import { useQuery, useQueries, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type { Chapter, LearningProgress, PointStatus, KnowledgePoint } from './types';
 
@@ -24,20 +24,6 @@ export function useChapterPoints(chapterId: number | undefined) {
     },
     enabled: !!chapterId,
     staleTime: 5 * 60 * 1000,
-  });
-}
-
-export function useAllChapterPoints(chapters: Chapter[] | undefined) {
-  const chapterIds = chapters?.map((c) => c.id) ?? [];
-  return useQueries({
-    queries: chapterIds.map((id) => ({
-      queryKey: ['knowledge-points', id] as const,
-      queryFn: async () => {
-        const resp = await api.get(`/knowledge/chapters/${id}/points`);
-        return resp.data.data as KnowledgePoint[];
-      },
-      staleTime: 5 * 60 * 1000,
-    })),
   });
 }
 
