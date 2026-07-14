@@ -18,7 +18,7 @@ function initMermaid() {
     mermaid.initialize({
       startOnLoad: false,
       theme: 'default',
-      securityLevel: 'loose',
+      securityLevel: 'strict',
     });
     mermaidInitialized = true;
   }
@@ -164,7 +164,7 @@ const components: Components = {
 
     // Render mermaid diagrams
     if (language === 'mermaid') {
-      const chartText = typeof children === 'string' ? children : String(children);
+      const chartText = Array.isArray(children) ? children.join('') : String(children);
       return <MermaidDiagram chart={chartText} />;
     }
 

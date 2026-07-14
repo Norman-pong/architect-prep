@@ -89,6 +89,7 @@ func Run(dbPath string) error {
 // Each knowledge point starts with "## Title" and is separated by "---".
 // Returns a slice of markdown content strings, one per knowledge point (in order).
 var headingRE = regexp.MustCompile(`^##\s+(.+)$`)
+var separatorRE = regexp.MustCompile(`(?m)^---\s*$`)
 
 func loadMarkdownKnowledgePoints(path string) ([]string, error) {
 	data, err := os.ReadFile(path)
@@ -98,8 +99,7 @@ func loadMarkdownKnowledgePoints(path string) ([]string, error) {
 
 	text := string(data)
 
-	// Split by "---" on its own line
-	sections := regexp.MustCompile(`(?m)^---\s*$`).Split(text, -1)
+	sections := separatorRE.Split(text, -1)
 
 	var points []string
 	for _, section := range sections {
