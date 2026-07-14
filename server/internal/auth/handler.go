@@ -2,6 +2,7 @@ package auth
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/normanway/architect-prep/internal/middleware"
@@ -63,11 +64,30 @@ func (h *Handler) VerifyLogin(c *gin.Context) {
 
 // Me 获取当前登录用户信息
 func (h *Handler) Me(c *gin.Context) {
-	userID, exists := c.Get(middleware.ContextUserID)
+	userIDVal, exists := c.Get(middleware.ContextUserID)
 	if !exists {
 		middleware.Error(c, http.StatusUnauthorized, "unauthorized")
 		return
 	}
 
-	middleware.Success(c, gin.H{"userID": userID})
+	// JWT stores userID as string, parse to int
+	userIDStr, ok := userIDVal.(string)
+	if !ok {
+		middleware.Error(c, http.StatusUnauthorized, "invalid token")
+		return
+	}
+
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		middleware.Error(c, http.StatusUnauthorized, "invalid user id")
+		return
+	}
+
+	user, err := h.service.GetUserByID(c.Request.Context(), userID)
+	if err != nil {
+		middleware.Error(c, http.StatusNotFound, "user not found")
+		return
+	}
+
+	middleware.Success(c, user)
 }

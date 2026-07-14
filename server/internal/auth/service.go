@@ -11,9 +11,9 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// UserRepository 用户存储接口（由 user 包实现）
 type UserRepository interface {
 	GetOrCreateUserByEmail(ctx context.Context, email string) (*User, error)
+	GetUserByID(ctx context.Context, id int) (*User, error)
 }
 
 // AuthService 认证业务逻辑
@@ -75,6 +75,11 @@ func (s *AuthService) VerifyLogin(ctx context.Context, email, code string) (*Aut
 		User:  *user,
 		Token: token,
 	}, nil
+}
+
+// GetUserByID 通过 ID 查询用户
+func (s *AuthService) GetUserByID(ctx context.Context, id int) (*User, error) {
+	return s.userRepo.GetUserByID(ctx, id)
 }
 
 // generateToken 签发 JWT，包含 userID 和 email，7 天过期

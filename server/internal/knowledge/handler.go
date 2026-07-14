@@ -21,11 +21,10 @@ func NewHandler(repo *Repository) *Handler {
 // RegisterRoutes mounts knowledge routes on the provided router group.
 // The caller should supply a group that already includes the /api/v1 prefix.
 func (h *Handler) RegisterRoutes(r *gin.RouterGroup) {
-	g := r.Group("/knowledge")
-	g.GET("/chapters", h.ListChapters)
-	g.GET("/chapters/:id", h.GetChapter)
-	g.GET("/chapters/:id/points", h.ListKnowledgePoints)
-	g.GET("/search", h.SearchKnowledgePoints)
+	r.GET("/chapters", h.ListChapters)
+	r.GET("/chapters/:id", h.GetChapter)
+	r.GET("/chapters/:id/points", h.ListKnowledgePoints)
+	r.GET("/search", h.SearchKnowledgePoints)
 }
 
 // ListChapters responds with all chapters.
