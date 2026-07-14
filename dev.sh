@@ -24,11 +24,15 @@ log()  { echo -e "${GREEN}[dev]${NC} $1"; }
 info() { echo -e "${CYAN}[dev]${NC} $1"; }
 warn() { echo -e "${YELLOW}[dev]${NC} $1"; }
 
-# Ctrl+C 清理
+# Ctrl+C 清理：杀进程树而非 jobs
+PIDS=()
 cleanup() {
   echo ""
   warn "正在停止所有服务..."
-  kill $(jobs -p) 2>/dev/null || true
+  for pid in "${PIDS[@]}"; do
+    pkill -P "$pid" 2>/dev/null || true   # 先杀子进程
+    kill "$pid" 2>/dev/null || true        # 再杀父进程
+  done
   wait 2>/dev/null
   log "已停止"
   exit 0
@@ -67,6 +71,7 @@ PORT="$PORT" \
 ENV_FILE="$SERVER_DIR/.env" \
 "$SERVER_DIR/tmp/architect-prep-dev" &
 BACKEND_PID=$!
+PIDS+=("$BACKEND_PID")
 
 # 等后端就绪
 for i in $(seq 1 10); do
@@ -81,6 +86,7 @@ done
 info "启动前端 → http://localhost:5173"
 (cd "$WEB_DIR" && vp dev) &
 FRONTEND_PID=$!
+PIDS+=("$FRONTEND_PID")
 
 echo ""
 echo -e "${GREEN}═══════════════════════════════════════════════${NC}"
