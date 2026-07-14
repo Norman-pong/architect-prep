@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS knowledge_points (
 
 CREATE TABLE IF NOT EXISTS questions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    chapter_id INTEGER NOT NULL,
+    chapter_id INTEGER,
     year INTEGER,
     half TEXT,
     exam_type TEXT,

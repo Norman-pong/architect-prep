@@ -31,7 +31,7 @@ type StatsResponse struct {
 
 // ChapterAccuracyResponse is the per-chapter correctness payload.
 type ChapterAccuracyResponse struct {
-	ChapterID      int     `json:"chapter_id"`
+	ChapterID      *int    `json:"chapter_id,omitempty"`
 	TotalQuestions int     `json:"total_questions"`
 	CorrectCount   int     `json:"correct_count"`
 	Accuracy       float64 `json:"accuracy"`

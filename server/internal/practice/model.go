@@ -5,7 +5,7 @@ import "encoding/json"
 // Question represents an exam question associated with a chapter.
 type Question struct {
 	ID           int64           `json:"id"`
-	ChapterID    int             `json:"chapter_id"`
+	ChapterID    *int            `json:"chapter_id,omitempty"`
 	Year         *int            `json:"year,omitempty"`
 	Half         *string         `json:"half,omitempty"`
 	ExamType     *string         `json:"exam_type,omitempty"`
@@ -22,7 +22,7 @@ type Question struct {
 // It omits the explanation and correct answer keys.
 type QuestionListItem struct {
 	ID           int64           `json:"id"`
-	ChapterID    int             `json:"chapter_id"`
+	ChapterID    *int            `json:"chapter_id,omitempty"`
 	Year         *int            `json:"year,omitempty"`
 	Half         *string         `json:"half,omitempty"`
 	ExamType     *string         `json:"exam_type,omitempty"`
