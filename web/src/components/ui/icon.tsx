@@ -130,3 +130,12 @@ export function CloseIcon(props: IconProps) {
     </Icon>
   );
 }
+export function ReviewIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M21 12a9 9 0 1 1-3.5-7.1" />
+      <path d="M21 4v5h-5" />
+      <path d="M12 8v4l2.5 2.5" />
+    </Icon>
+  );
+}

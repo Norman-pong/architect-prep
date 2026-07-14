@@ -8,6 +8,7 @@ import {
   BookOpenIcon,
   CloseIcon,
   PencilIcon,
+  ReviewIcon,
   SettingsIcon,
 } from '@/components/ui/icon';
 
@@ -23,6 +24,7 @@ const navItems: readonly NavItem[] = [
   { key: 'nav.knowledge', path: '/knowledge', icon: BookOpenIcon },
   { key: 'nav.practice', path: '/practice', icon: PencilIcon },
   { key: 'nav.wrongQuestions', path: '/wrong-questions', icon: AlertCircleIcon },
+  { key: 'nav.review', path: '/review', icon: ReviewIcon },
   { key: 'nav.stats', path: '/stats', icon: BarChartIcon },
   { key: 'nav.settings', path: '/settings', icon: SettingsIcon },
 ] as const;

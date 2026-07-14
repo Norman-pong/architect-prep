@@ -116,6 +116,7 @@ export function WrongQuestionsPage() {
                 <div className="flex items-center gap-2">
                   {isMultiple && <Badge variant="warning">多选</Badge>}
                   {!isMultiple && <Badge variant="info">单选</Badge>}
+                  <Badge variant="success">已加入复习</Badge>
                   <span className="text-xs text-muted-foreground">
                     错题时间: {new Date(wq.created_at).toLocaleDateString('zh-CN')}
                   </span>

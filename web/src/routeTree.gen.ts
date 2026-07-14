@@ -15,6 +15,7 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedWrongQuestionsIndexRouteImport } from './routes/_authenticated/wrong-questions/index'
 import { Route as AuthenticatedStatsIndexRouteImport } from './routes/_authenticated/stats/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
+import { Route as AuthenticatedReviewIndexRouteImport } from './routes/_authenticated/review/index'
 import { Route as AuthenticatedPracticeIndexRouteImport } from './routes/_authenticated/practice/index'
 import { Route as AuthenticatedKnowledgeIndexRouteImport } from './routes/_authenticated/knowledge/index'
 
@@ -49,6 +50,12 @@ const AuthenticatedSettingsIndexRoute =
     path: '/settings/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedReviewIndexRoute =
+  AuthenticatedReviewIndexRouteImport.update({
+    id: '/review/',
+    path: '/review/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPracticeIndexRoute =
   AuthenticatedPracticeIndexRouteImport.update({
     id: '/practice/',
@@ -67,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/knowledge/': typeof AuthenticatedKnowledgeIndexRoute
   '/practice/': typeof AuthenticatedPracticeIndexRoute
+  '/review/': typeof AuthenticatedReviewIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/stats/': typeof AuthenticatedStatsIndexRoute
   '/wrong-questions/': typeof AuthenticatedWrongQuestionsIndexRoute
@@ -76,6 +84,7 @@ export interface FileRoutesByTo {
   '/': typeof AuthenticatedIndexRoute
   '/knowledge': typeof AuthenticatedKnowledgeIndexRoute
   '/practice': typeof AuthenticatedPracticeIndexRoute
+  '/review': typeof AuthenticatedReviewIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/stats': typeof AuthenticatedStatsIndexRoute
   '/wrong-questions': typeof AuthenticatedWrongQuestionsIndexRoute
@@ -87,6 +96,7 @@ export interface FileRoutesById {
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/knowledge/': typeof AuthenticatedKnowledgeIndexRoute
   '/_authenticated/practice/': typeof AuthenticatedPracticeIndexRoute
+  '/_authenticated/review/': typeof AuthenticatedReviewIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/stats/': typeof AuthenticatedStatsIndexRoute
   '/_authenticated/wrong-questions/': typeof AuthenticatedWrongQuestionsIndexRoute
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/knowledge/'
     | '/practice/'
+    | '/review/'
     | '/settings/'
     | '/stats/'
     | '/wrong-questions/'
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/'
     | '/knowledge'
     | '/practice'
+    | '/review'
     | '/settings'
     | '/stats'
     | '/wrong-questions'
@@ -117,6 +129,7 @@ export interface FileRouteTypes {
     | '/_authenticated/'
     | '/_authenticated/knowledge/'
     | '/_authenticated/practice/'
+    | '/_authenticated/review/'
     | '/_authenticated/settings/'
     | '/_authenticated/stats/'
     | '/_authenticated/wrong-questions/'
@@ -171,6 +184,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/review/': {
+      id: '/_authenticated/review/'
+      path: '/review'
+      fullPath: '/review/'
+      preLoaderRoute: typeof AuthenticatedReviewIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/practice/': {
       id: '/_authenticated/practice/'
       path: '/practice'
@@ -192,6 +212,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedKnowledgeIndexRoute: typeof AuthenticatedKnowledgeIndexRoute
   AuthenticatedPracticeIndexRoute: typeof AuthenticatedPracticeIndexRoute
+  AuthenticatedReviewIndexRoute: typeof AuthenticatedReviewIndexRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
   AuthenticatedStatsIndexRoute: typeof AuthenticatedStatsIndexRoute
   AuthenticatedWrongQuestionsIndexRoute: typeof AuthenticatedWrongQuestionsIndexRoute
@@ -201,6 +222,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedKnowledgeIndexRoute: AuthenticatedKnowledgeIndexRoute,
   AuthenticatedPracticeIndexRoute: AuthenticatedPracticeIndexRoute,
+  AuthenticatedReviewIndexRoute: AuthenticatedReviewIndexRoute,
   AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
   AuthenticatedStatsIndexRoute: AuthenticatedStatsIndexRoute,
   AuthenticatedWrongQuestionsIndexRoute: AuthenticatedWrongQuestionsIndexRoute,

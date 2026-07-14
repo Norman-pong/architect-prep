@@ -4,16 +4,20 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
+
+	"github.com/normanway/architect-prep/internal/review"
 )
 
 // Service provides business logic for the practice domain.
 type Service struct {
-	repo *Repository
+	repo          *Repository
+	reviewService *review.Service
 }
 
 // NewService creates a practice service backed by repo.
-func NewService(repo *Repository) *Service {
-	return &Service{repo: repo}
+func NewService(repo *Repository, reviewService *review.Service) *Service {
+	return &Service{repo: repo, reviewService: reviewService}
 }
 
 // Submit grades a user's answer and records the result.
@@ -53,9 +57,24 @@ func (s *Service) Submit(ctx context.Context, userID, questionID int, userAnswer
 		if err := s.repo.InsertWrongQuestion(ctx, userID, questionID); err != nil {
 			return nil, err
 		}
+		if s.reviewService != nil {
+			if err := s.reviewService.EnsureReviewItem(ctx, userID, "wrong_question", questionID); err != nil {
+				log.Printf("warning: ensure review item failed: %v", err)
+			}
+		}
 	} else {
-		// Remove from wrong questions if previously recorded.
-		_ = s.repo.DeleteWrongQuestion(ctx, userID, questionID)
+		// Do NOT delete from wrong_questions; instead grade the review item as Good.
+		// _ = s.repo.DeleteWrongQuestion(ctx, userID, questionID)
+		if s.reviewService != nil {
+			exists, err := s.reviewService.Exists(ctx, userID, "wrong_question", questionID)
+			if err != nil {
+				log.Printf("warning: check review item exists failed: %v", err)
+			} else if exists {
+				if _, err := s.reviewService.GradeCard(ctx, userID, "wrong_question", questionID, 3); err != nil {
+					log.Printf("warning: grade review item failed: %v", err)
+				}
+			}
+		}
 	}
 
 	explanation := ""

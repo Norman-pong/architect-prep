@@ -1,6 +1,6 @@
 # Phase 3: FSRS 遗忘曲线复习系统
 
-> 状态：进行中
+> 状态：已完成（Sprint 3.1-3.4）
 > 修改记录：执行 `lore log docs/phase/2026-07-14-fsrs-review-system.md`
 > 对应 PRD：[FSRS 遗忘曲线复习系统 PRD](../prd/2026-07-14-fsrs-review-system.md)
 
@@ -22,19 +22,19 @@ Phase 1 搭建骨架，Phase 2 填充知识体系和刷题功能。Phase 3 的�
 
 ### 1.3 完成标准
 
-- [ ] go build + go vet 通过
-- [ ] vp check + vp build 通过
-- [ ] review_items 表 + knowledge_cards 表自动建表
-- [ ] 答错题目时创建 review_items 记录（item_type=wrong_question）
-- [ ] 答对错题时更新 FSRS 参数（不删除 wrong_questions 记录）
-- [ ] 错题本列表按 due 排序
-- [ ] 40 张知识卡片入库
-- [ ] 今日复习页面可展示到期知识卡片 + 翻面 + 4 级评分
-- [ ] GET /api/v1/review/due 返回 due <= now() 的列表，按 due ASC 排序
-- [ ] POST /api/v1/review/grade 更新 FSRS 调度，返回新 due/state/stability/difficulty
-- [ ] 已有 wrong_questions 数据迁移完成（幂等）
-- [ ] 全量知识卡片入库（500-800 张，覆盖 336 知识点）
-- [ ] 随机抽查 20 张卡片与教材原文一致
+- [x] go build + go vet 通过
+- [x] vp check + vp build 通过
+- [x] review_items 表 + knowledge_cards 表自动建表
+- [x] 答错题目时创建 review_items 记录（item_type=wrong_question）
+- [x] 答对错题时更新 FSRS 参数（不删除 wrong_questions 记录）
+- [x] 错题本列表按 due 排序
+- [x] 40 张知识卡片入库
+- [x] 今日复习页面可展示到期知识卡片 + 翻面 + 4 级评分
+- [x] GET /api/v1/review/due 返回 due <= now() 的列表，按 due ASC 排序
+- [x] POST /api/v1/review/grade 更新 FSRS 调度，返回新 due/state/stability/difficulty
+- [x] 已有 wrong_questions 数据迁移完成（幂等）
+- [ ] 全量知识卡片入库（500-800 张，覆盖 336 知识点）— Sprint 3.5 待办
+- [ ] 随机抽查 20 张卡片与教材原文一致 — Sprint 3.5 待办
 
 ## 2. 任务分解
 
@@ -42,44 +42,27 @@ Phase 1 搭建骨架，Phase 2 填充知识体系和刷题功能。Phase 3 的�
 
 | 任务 ID | 任务名称 | 说明 | 状态 |
 | ------- | -------- | ---- | ---- |
-| T501 | 引入 go-fsrs 依赖 | `go get github.com/imxw/go-fsrs`，验证可编译 | ⬜ |
-| T502 | review_items 表 DDL | db.go 新增建表：字段 + UNIQUE(user_id, item_type, item_id) + idx_review_due + idx_review_user_type | ⬜ |
-| T503 | knowledge_cards 表 DDL | db.go 新增建表：id/knowledge_point_id/chapter_id/front/back/sort_order | ⬜ |
-| T504 | 数据迁移逻辑 | db.go 建表后执行 INSERT OR IGNORE 补建 review_items，幂等 | ⬜ |
-| T505 | review 模块骨架 | model.go / repository.go / service.go / handler.go 四文件骨架 | ⬜ |
-
-### Sprint 3.2: 后端 FSRS 调度 + API
-
-| 任务 ID | 任务名称 | 说明 | 状态 |
-| ------- | -------- | ---- | ---- |
-| T506 | FSRS 调度器封装 | service.go：NewScheduler(desired_retention=0.9) + ReviewCard 封装 | ⬜ |
-| T507 | review_items CRUD | repository.go：GetDue / GetByItem / Create / Update / 迁移查询 | ⬜ |
-| T508 | 错题判分改造 | practice/service.go Submit：答错创建 review_items(state=1, rating=Again)，答对更新 FSRS(rating=Good) | ⬜ |
-| T509 | GET /review/due API | handler.go：按 type 筛选 due<=now()，PaginatedResponse，due ASC | ⬜ |
-| T510 | POST /review/grade API | handler.go：接收 {item_type, item_id, rating(int 1-4)}，调用 FSRS 更新，返回 {due, state, stability, difficulty} | ⬜ |
-| T511 | GET /review/stats API | handler.go：返回 {due_count, reviewed_today, total_items} | ⬜ |
-| T512 | 路由注册 | router.go 注册 /api/v1/review 组，JWTAuth 守卫 | ⬜ |
-
-### Sprint 3.3: MVP 知识卡片生成（按考试优先级）
-
-按 knowledge-framework.md 考试重点分布表分三批，每章 2 张 Q&A，共 40 张。
-
-| 任务 ID | 任务名称 | 覆盖章节 | 优先级 | 状态 |
-| ------- | -------- | -------- | ------ | ---- |
-| T513 | MVP 卡片生成（最高优先级） | ch5 软件工程 / ch7 系统架构设计 / ch8 质量属性与架构评估 / ch20 论文写作 | 最高 | ⬜ |
-| T514 | MVP 卡片生成（高优先级） | ch4 信息安全 / ch6 数据库 / ch9 软件可靠性 / ch12 信息系统架构 / ch13 层次式架构 / ch14 云原生架构 / ch15 SOA / ch18 安全架构 / ch19 大数据架构 | 高 | ⬜ |
-| T515 | MVP 卡片生成（中优先级） | ch1 绪论 / ch2 计算机系统 / ch3 信息系统 / ch10 架构演化 / ch11 未来信息技术 / ch16 嵌入式系统 / ch17 通信系统 | 中 | ⬜ |
-| T516 | MVP 卡片 seed 脚本 | seed/data.go 新增 KnowledgeCards 数据，cmd/seed 导入 knowledge_cards 表 | - | ⬜ |
-
-### Sprint 3.4: 前端改造
-
-| 任务 ID | 任务名称 | 说明 | 状态 |
-| ------- | -------- | ---- | ---- |
-| T517 | 今日复习页面 | 新建 review/ 页面：卡片翻面 + 4 级评分按钮 + 评分后淡出 | ⬜ |
-| T518 | 侧边栏导航 | sidebar.tsx 新增"今日复习"导航项 | ⬜ |
-| T519 | 错题本页面改造 | wrong-questions.tsx：排序改 due ASC，列表项加 due 时间 + state 标签 | ⬜ |
-| T520 | review API hooks | queries.ts 新增 useReviewDue / useReviewGrade / useReviewStats | ⬜ |
-| T521 | 路由注册 | routeTree 新增 /review/ 路由 | ⬜ |
+| T501 | 引入 go-fsrs 依赖 | `go get github.com/imxw/go-fsrs`，验证可编译 | ✅ |
+| T502 | review_items 表 DDL | db.go 新增建表：字段 + UNIQUE(user_id, item_type, item_id) + idx_review_due + idx_review_user_type | ✅ |
+| T503 | knowledge_cards 表 DDL | db.go 新增建表：id/knowledge_point_id/chapter_id/front/back/sort_order | ✅ |
+| T504 | 数据迁移逻辑 | db.go 建表后执行 INSERT OR IGNORE 补建 review_items，幂等 | ✅ |
+| T505 | review 模块骨架 | model.go / repository.go / service.go / handler.go 四文件骨架 | ✅ |
+| T506 | FSRS 调度器封装 | service.go：NewScheduler(desired_retention=0.9) + ReviewCard 封装 | ✅ |
+| T507 | review_items CRUD | repository.go：GetDue / GetByItem / Create / Update / 迁移查询 | ✅ |
+| T508 | 错题判分改造 | practice/service.go Submit：答错创建 review_items(state=1, rating=Again)，答对更新 FSRS(rating=Good) | ✅ |
+| T509 | GET /review/due API | handler.go：按 type 筛选 due<=now()，PaginatedResponse，due ASC | ✅ |
+| T510 | POST /review/grade API | handler.go：接收 {item_type, item_id, rating(int 1-4)}，调用 FSRS 更新，返回 {due, state, stability, difficulty} | ✅ |
+| T511 | GET /review/stats API | handler.go：返回 {due_count, reviewed_today, total_items} | ✅ |
+| T512 | 路由注册 | router.go 注册 /api/v1/review 组，JWTAuth 守卫 | ✅ |
+| T513 | MVP 卡片生成（最高优先级） | ch5 软件工程 / ch7 系统架构设计 / ch8 质量属性与架构评估 / ch20 论文写作 | ✅ |
+| T514 | MVP 卡片生成（高优先级） | ch4 信息安全 / ch6 数据库 / ch9 软件可靠性 / ch12 信息系统架构 / ch13 层次式架构 / ch14 云原生架构 / ch15 SOA / ch18 安全架构 / ch19 大数据架构 | ✅ |
+| T515 | MVP 卡片生成（中优先级） | ch1 绪论 / ch2 计算机系统 / ch3 信息系统 / ch10 架构演化 / ch11 未来信息技术 / ch16 嵌入式系统 / ch17 通信系统 | ✅ |
+| T516 | MVP 卡片 seed 脚本 | seed/data.go 新增 KnowledgeCards 数据，cmd/seed 导入 knowledge_cards 表 | ✅ |
+| T517 | 今日复习页面 | 新建 review/ 页面：卡片翻面 + 4 级评分按钮 + 评分后淡出 | ✅ |
+| T518 | 侧边栏导航 | sidebar.tsx 新增"今日复习"导航项 | ✅ |
+| T519 | 错题本页面改造 | wrong-questions.tsx：排序改 due ASC，列表项加 due 时间 + state 标签 | ✅ (P2: due 显示为最小改动 Badge，全量改造 Sprint 3.5) |
+| T520 | review API hooks | queries.ts 新增 useReviewDue / useReviewGrade / useReviewStats | ✅ |
+| T521 | 路由注册 | routeTree 新增 /review/ 路由 | ✅ |
 
 ### Sprint 3.5: 全量知识卡片补全（按考试优先级）
 
@@ -121,21 +104,22 @@ func NewReviewService(repo *Repository) *ReviewService {
 // 注意：方法名故意不叫 ReviewCard，避免与 fsrs.Scheduler.ReviewCard 混淆
 // fsrs.Scheduler.ReviewCard 签名：ReviewCard(card *Card, rating Rating, reviewDatetime *time.Time, reviewDuration *int) (*Card, *ReviewLog)
 func (s *ReviewService) GradeCard(userID int, itemType string, itemID int, rating int) (*ReviewResult, error) {
-    // 1. 从 DB 读取 review_items 当前状态（state/stability/difficulty/due/last_review_at）
+    // 1. 从 DB 读取 review_items 当前状态（state/stability/difficulty/step/due/last_review_at）
     // 2. 构造 go-fsrs Card 结构体：
     //    - State: fsrs.State(ri.State)        // 1=Learning 2=Review 3=Relearning
     //    - Stability: ptr or nil              // nil 表示未复习过（首次评分）
     //    - Difficulty: ptr or nil             // nil 表示未复习过
-    //    - Due: ri.Due
+    //    - Step: 永远传值指针（go-fsrs v0.2.0 对 Learning/Relearning 状态会直接 *c.Step 解引用，nil 会 panic）。Review 状态也传 0。
+    //    - Due: 解析为 time.Time（存储格式 UTC "2006-01-02 15:04:05"）
     //    - LastReview: ri.LastReviewAt        // nil 表示首次
-    //    - Step: 仅 Learning/Relearning 状态需要，Review 状态为 nil
-    // 3. 调用 s.scheduler.ReviewCard(card, fsrs.Rating(rating), nil, nil)
+    // 3. 记录 prevState 用于检测 lapses（Review → Relearning 转换时 ri.Lapses++）
+    // 4. 调用 s.scheduler.ReviewCard(card, fsrs.Rating(rating), nil, nil)
     //    reviewDatetime=nil → 用 time.Now()，reviewDuration=nil → 不记录
-    // 4. 将返回的 *Card 的 stability/difficulty/due/state 写回 review_items
+    // 5. 将返回的 *Card 的 stability/difficulty/step/due/state 写回 review_items
     //    将返回的 *ReviewLog 可选持久化（P2 参数优化需要）
-    // 5. 返回 {due, state, stability, difficulty}
+    // 6. 返回 {due, state, stability, difficulty}
+    // 注意：所有时间字段存储使用 UTC + "2006-01-02 15:04:05" 格式，使 SQL 字典序比较与时间顺序一致。
 }
-```
 
 ### 3.2 review_items 表 DDL
 
@@ -147,6 +131,7 @@ CREATE TABLE IF NOT EXISTS review_items (
     item_id INTEGER NOT NULL,
     stability REAL,
     difficulty REAL,
+    step INTEGER NOT NULL DEFAULT 0,  -- go-fsrs Step 字段（学习/再学习步进）
     due DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     reps INTEGER NOT NULL DEFAULT 0,
     lapses INTEGER NOT NULL DEFAULT 0,
@@ -231,3 +216,4 @@ graph LR
 | 卡片交叉校验耗时长 | 40 张卡片生成慢 | 分两批 ch01-ch10 / ch11-ch20 并行 |
 | 错题迁移幂等性 | 重复执行 | UNIQUE 约束 + INSERT OR IGNORE |
 | FSRS state 枚举不匹配 | 映射错误 | PRD 已明确映射表，int 存储 |
+| FSRS Card.Step nil panic | P0 阻塞：go-fsrs v0.2.0 对 Learning/Relearning 状态直接解引用 c.Step，必须持久化 step 列 | review_items 表加 step INTEGER NOT NULL DEFAULT 0 列，GradeCard 始终传值指针 |

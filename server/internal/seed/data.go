@@ -3,7 +3,7 @@ package seed
 // ChapterData 章节数据
 type ChapterData struct {
 	ChapterNo int              `json:"chapter_no"`
-	Title     string            `json:"title"`
+	Title     string           `json:"title"`
 	Summary   string           `json:"summary"`
 	Points    []KnowledgePoint `json:"points"`
 }

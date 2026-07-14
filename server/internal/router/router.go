@@ -16,6 +16,7 @@ import (
 	"github.com/normanway/architect-prep/internal/learning"
 	"github.com/normanway/architect-prep/internal/middleware"
 	"github.com/normanway/architect-prep/internal/practice"
+	"github.com/normanway/architect-prep/internal/review"
 	"github.com/normanway/architect-prep/internal/seed"
 	"github.com/normanway/architect-prep/internal/user"
 )
@@ -69,9 +70,19 @@ func Register(cfg *config.Config) *gin.Engine {
 		knowledgeHandler.RegisterRoutes(knowledgeGroup)
 	}
 
+	// Review routes (JWT required) — must init before practice because practice depends on review
+	reviewRepo := review.NewRepository(database)
+	reviewService := review.NewService(reviewRepo)
+	reviewHandler := review.NewHandler(reviewRepo, reviewService)
+	reviewGroup := v1.Group("/review")
+	reviewGroup.Use(middleware.JWTAuth())
+	{
+		reviewHandler.RegisterRoutes(reviewGroup)
+	}
+
 	// Practice routes (JWT required)
 	practiceRepo := practice.NewRepository(database)
-	practiceService := practice.NewService(practiceRepo)
+	practiceService := practice.NewService(practiceRepo, reviewService)
 	practiceHandler := practice.NewHandler(practiceRepo, practiceService)
 	practiceGroup := v1.Group("/practice")
 	practiceGroup.Use(middleware.JWTAuth())

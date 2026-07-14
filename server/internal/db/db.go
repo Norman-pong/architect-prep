@@ -163,4 +163,33 @@ CREATE TABLE IF NOT EXISTS last_progress (
     FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE,
     FOREIGN KEY (point_id) REFERENCES knowledge_points(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS review_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    item_type TEXT NOT NULL,
+    item_id INTEGER NOT NULL,
+    stability REAL,
+    difficulty REAL,
+    step INTEGER NOT NULL DEFAULT 0,
+    due TEXT NOT NULL DEFAULT (datetime('now')),
+    reps INTEGER NOT NULL DEFAULT 0,
+    lapses INTEGER NOT NULL DEFAULT 0,
+    state INTEGER NOT NULL DEFAULT 1,
+    last_review_at TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (user_id, item_type, item_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS knowledge_cards (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    knowledge_point_id INTEGER NOT NULL,
+    chapter_id INTEGER NOT NULL,
+    front TEXT NOT NULL,
+    back TEXT NOT NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (knowledge_point_id) REFERENCES knowledge_points(id) ON DELETE CASCADE,
+    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE
+);
 `
