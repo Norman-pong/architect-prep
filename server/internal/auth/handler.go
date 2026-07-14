@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -34,7 +36,8 @@ func (h *Handler) SendCode(c *gin.Context) {
 	}
 
 	if err := h.service.SendCode(c.Request.Context(), req.Email); err != nil {
-		middleware.Error(c, http.StatusInternalServerError, "failed to send verification code")
+		log.Printf("send verification code failed: %v", err)
+		middleware.Error(c, http.StatusInternalServerError, fmt.Sprintf("failed to send verification code: %v", err))
 		return
 	}
 

@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	cfg := config.Load(".env")
+	cfg := config.Load("")
 
 	r := router.Register(cfg)
 
