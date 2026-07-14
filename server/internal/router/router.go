@@ -2,7 +2,10 @@ package router
 
 import (
 	"log"
+	"net/http"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -69,6 +72,24 @@ func Register(cfg *config.Config) *gin.Engine {
 	practiceGroup.Use(middleware.JWTAuth())
 	{
 		practiceHandler.RegisterRoutes(practiceGroup)
+	}
+
+	// Serve frontend static files (SPA mode)
+	distPath := "./web/dist"
+	if _, err := os.Stat(distPath); err == nil {
+		r.Static("/assets", distPath+"/assets")
+		r.StaticFile("/favicon.ico", distPath+"/favicon.ico")
+		r.StaticFile("/vite.svg", distPath+"/vite.svg")
+		r.GET("/", func(c *gin.Context) {
+			c.File(distPath + "/index.html")
+		})
+		r.NoRoute(func(c *gin.Context) {
+			if strings.HasPrefix(c.Request.URL.Path, "/api/") {
+				middleware.Error(c, http.StatusNotFound, "not found")
+				return
+			}
+			c.File(distPath + "/index.html")
+		})
 	}
 
 	return r

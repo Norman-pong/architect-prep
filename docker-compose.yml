@@ -1,7 +1,7 @@
 services:
-  server:
+  app:
     build:
-      context: ./server
+      context: .
       dockerfile: Dockerfile
     environment:
       SERVER_PORT: "8080"
@@ -16,15 +16,6 @@ services:
       - "8080:8080"
     volumes:
       - dbdata:/data
-
-  web:
-    build:
-      context: ./web
-      dockerfile: Dockerfile
-    ports:
-      - "3001:80"
-    depends_on:
-      - server
 
 volumes:
   dbdata:
