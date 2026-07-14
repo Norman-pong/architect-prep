@@ -1,8 +1,15 @@
 # 系统架构师备考平台 PRD
 
-> 状态：评审中
-> 修改记录：执行 `lore log docs/prd/2026-07-13-architect-prep-platform.md`
-> 对应阶段：[项目骨架搭建](../phase/2026-07-13-foundation-skeleton.md)
+> 状态：已归档 | 归档日期：2026-07-14 | 归档路径：docs/prd/archive/2026-07-13-architect-prep-platform.md
+>
+> **重要：本 PRD 已归档**。如需修改请：
+>
+> 1. 说明原因（修 bug？目标变更？新需求？）
+> 2. 引导用户创建新 PRD 或更新归档版本
+>
+> 不要再直接修改本文件--避免污染历史快照。
+>
+> 对应阶段：[项目骨架搭建](../../phase/2026-07-13-foundation-skeleton.md)
 
 ## 1. 背景与目标
 
@@ -97,11 +104,11 @@
 
 7 张表：users / chapters / knowledge_points / questions / practice_records / wrong_questions / favorites
 
-详见 [架构总览](../architecture/overview.md) §5。
+详见 [架构总览](../../architecture/overview.md) §5。
 
 ### 5.2 数据迁移
 
-题库导入策略详见 [题库调研报告](../question-bank-research.md)。
+题库导入策略详见 [题库调研报告](../../architecture/question-bank-research.md)。
 
 ## 6. 界面需求
 
@@ -124,7 +131,7 @@
 
 ## 7. 技术架构
 
-详见 [架构总览](../architecture/overview.md)。
+详见 [架构总览](../../architecture/overview.md)。
 
 ## 8. 验收标准
 
@@ -160,6 +167,6 @@
 
 ### 10.1 参考资料
 
-- [系统架构设计师教程第2版](../reference/)
-- [知识体系框架](../knowledge-framework.md)
-- [题库调研报告](../question-bank-research.md)
+- [系统架构设计师教程第2版](../../reference/)
+- [知识体系框架](../../architecture/knowledge-framework.md)
+- [题库调研报告](../../architecture/question-bank-research.md)

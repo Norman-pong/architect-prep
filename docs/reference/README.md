@@ -9,8 +9,8 @@
 | 文档名称     | 文件                                                      | 说明             |
 | ------------ | --------------------------------------------------------- | ---------------- |
 | 文档贡献指南 | [CONTRIBUTING.md](../CONTRIBUTING.md)                     | SDD 文档工作流程 |
-| 知识体系框架 | [knowledge-framework.md](../knowledge-framework.md)       | 教材 20 章结构   |
-| 题库调研报告 | [question-bank-research.md](../question-bank-research.md) | 10 仓库调研      |
+| 知识体系框架 | [knowledge-framework.md](../architecture/knowledge-framework.md) | 教材 20 章结构 |
+| 题库调研报告 | [question-bank-research.md](../architecture/question-bank-research.md) | 10 仓库调研 |
 
 ## 2. 外部文档
 

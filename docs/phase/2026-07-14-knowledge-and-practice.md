@@ -2,7 +2,7 @@
 
 > 状态：已完成
 > 修改记录：执行 `lore log docs/phase/2026-07-14-knowledge-and-practice.md`
-> 对应 PRD：[系统架构师备考平台 PRD](../prd/2026-07-13-architect-prep-platform.md)
+> 对应 PRD：[系统架构师备考平台 PRD](../prd/archive/2026-07-13-architect-prep-platform.md)（已归档）
 
 ## 1. 阶段目标
 

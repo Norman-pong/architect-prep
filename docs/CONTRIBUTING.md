@@ -12,10 +12,10 @@ docs/
 ├── CONTRIBUTING.md        # 本文档
 ├── spec/                  # 结构化需求输入
 ├── prd/                   # 产品需求文档
+│   └── archive/           # 已归档 PRD
 ├── phase/                 # 阶段文档
 ├── architecture/          # 架构文档
 └── reference/             # 参考资料
-```
 
 ## 2. 工作流程
 

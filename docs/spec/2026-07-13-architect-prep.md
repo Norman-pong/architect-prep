@@ -70,5 +70,5 @@
 
 ## 9. 参考材料
 
-- [知识体系框架](../knowledge-framework.md)
-- [题库调研报告](../question-bank-research.md)
+- [知识体系框架](../architecture/knowledge-framework.md)
+- [题库调研报告](../architecture/question-bank-research.md)
