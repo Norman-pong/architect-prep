@@ -169,8 +169,8 @@ func parseMarkdown(text string, year int, half string) []ParsedQuestion {
 		if current == nil {
 			return
 		}
-		if len(currentOptions) > 0 && len(current.Options) == 0 {
-			current.Options = currentOptions
+		if len(currentOptions) > 0 {
+			current.Options = append(current.Options, currentOptions...)
 		}
 		current.QuestionType = determineQuestionType(current.AnswerKeys)
 		current.Content = cleanContent(current.Content)

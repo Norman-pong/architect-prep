@@ -17,6 +17,7 @@ COPY server/data/questions ./data/questions
 RUN /seed -db /seed.db && /import-questions -db /seed.db -dir ./data/questions
 
 # Stage 3: Runtime (backend + frontend static + seed db)
+# NOTE: 前端 dist/ 需在 CI/CD 或本地执行 `cd web && vp build` 生成后再 docker build
 FROM alpine:3.21
 RUN apk add --no-cache ca-certificates tzdata
 

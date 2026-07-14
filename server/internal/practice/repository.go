@@ -124,7 +124,7 @@ func (r *Repository) ListWrongQuestions(ctx context.Context, userID, page, pageS
 
 	query := `
 		SELECT wq.id, wq.user_id, wq.question_id, wq.created_at,
-			q.id, q.chapter_id, q.year, q.half, q.exam_type, q.question_type, q.content, q.options, q.difficulty
+			q.id, q.chapter_id, q.year, q.half, q.exam_type, q.question_type, q.content, q.options, q.answer_keys, q.difficulty
 		FROM wrong_questions wq
 		JOIN questions q ON q.id = wq.question_id
 		WHERE wq.user_id = ?
@@ -140,15 +140,18 @@ func (r *Repository) ListWrongQuestions(ctx context.Context, userID, page, pageS
 	for rows.Next() {
 		var wq WrongQuestion
 		var q Question
-		var opts []byte
+		var opts, answerKeys []byte
 		if err := rows.Scan(
 			&wq.ID, &wq.UserID, &wq.QuestionID, &wq.CreatedAt,
-			&q.ID, &q.ChapterID, &q.Year, &q.Half, &q.ExamType, &q.QuestionType, &q.Content, &opts, &q.Difficulty,
+			&q.ID, &q.ChapterID, &q.Year, &q.Half, &q.ExamType, &q.QuestionType, &q.Content, &opts, &answerKeys, &q.Difficulty,
 		); err != nil {
 			return nil, fmt.Errorf("scan wrong question: %w", err)
 		}
 		if len(opts) > 0 {
 			q.Options = json.RawMessage(opts)
+		}
+		if len(answerKeys) > 0 {
+			q.AnswerKeys = json.RawMessage(answerKeys)
 		}
 		wq.Question = &q
 		items = append(items, wq)

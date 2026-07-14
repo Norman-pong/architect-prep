@@ -48,6 +48,11 @@ func Load(envFile string) *Config {
 		SMTPPass:   getEnv("SMTP_PASS", ""),
 		SMTPFrom:   getEnv("SMTP_FROM", ""),
 	}
+
+	// Validate JWT secret: refuse to start with weak/empty secret
+	if len(cfg.JWTSecret) < 16 {
+		log.Fatal("JWT_SECRET must be set and at least 16 characters long")
+	}
 	C = cfg
 	return cfg
 }
