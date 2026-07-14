@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { Markdown } from '@/components/markdown';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -101,14 +102,14 @@ function ChapterPoints({ chapterId }: { chapterId: number }) {
     <div className="space-y-2 py-2 pl-11">
       {points.map((pt, idx) => (
         <Card key={pt.id}>
-          <CardContent className="space-y-1 p-3">
+          <CardContent className="space-y-2 p-3">
             <div className="flex items-start gap-2">
               <Badge variant="info" className="shrink-0">
                 {idx + 1}
               </Badge>
               <h4 className="text-sm font-semibold text-foreground">{pt.title}</h4>
             </div>
-            <p className="text-sm text-muted-foreground">{pt.content}</p>
+            <Markdown content={pt.content} skipFirstHeading />
           </CardContent>
         </Card>
       ))}

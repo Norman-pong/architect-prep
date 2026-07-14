@@ -1,5 +1,5 @@
 # Stage 1: Build backend + seed tools
-FROM golang:1.25-alpine AS backend
+FROM golang:1.26-alpine AS backend
 ENV GOPROXY=https://goproxy.cn,direct
 WORKDIR /app
 
