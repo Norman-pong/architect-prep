@@ -5,30 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-
-interface Question {
-  id: number;
-  chapter_id: number;
-  exam_type: string;
-  question_type: string;
-  content: string;
-  options: string[];
-  difficulty: number;
-}
-
-interface QuestionList {
-  items: Question[];
-  total: number;
-  page: number;
-  page_size: number;
-  total_pages: number;
-}
-
-interface SubmitResponse {
-  is_correct: boolean;
-  correct_answer_keys: string[];
-  explanation: string;
-}
+import type { Question, PaginatedResponse, SubmitResponse } from './types';
 
 export function PracticePage() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -40,7 +17,7 @@ export function PracticePage() {
     queryKey: ['practice-questions'],
     queryFn: async () => {
       const resp = await api.get('/practice/questions', { params: { page: 1, page_size: 20 } });
-      return resp.data.data as QuestionList;
+      return resp.data.data as PaginatedResponse<Question>;
     },
   });
 
@@ -51,8 +28,8 @@ export function PracticePage() {
     },
     onSuccess: (data) => {
       setSubmitResult(data);
-      queryClient.invalidateQueries({ queryKey: ['practice-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['wrong-questions'] });
+      void queryClient.invalidateQueries({ queryKey: ['practice-stats'] });
+      void queryClient.invalidateQueries({ queryKey: ['wrong-questions'] });
     },
   });
 
@@ -121,7 +98,7 @@ export function PracticePage() {
           <CardTitle className="text-base">{currentQuestion.content}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          {currentQuestion.options.map((opt) => {
+          {(currentQuestion.options ?? []).map((opt) => {
             const key = opt.charAt(0);
             const isSelected = selectedOptions.has(key);
             const isCorrect = submitResult?.correct_answer_keys.includes(key);
