@@ -125,18 +125,21 @@ function KnowledgePage() {
     return map;
   }, [currentChapterPoints, currentChapterId, expandedChapterPoints, expandedChapterId]);
 
-  // Build mastered status map from progress.per_chapter
-  // Backend returns per_chapter: [{chapter_id, total, mastered}]
-  // We don't have per-point mastered status in the bulk response,
-  // so point-level badges are best-effort (fetched on-demand via usePointStatus)
+  // Build mastered status map from progress.mastered_point_ids (bulk) + pointStatus (current)
   const pointStatusMap = useMemo(() => {
     const map = new Map<number, boolean>();
-    // If we have pointStatus for the current point, include it
+    // Use mastered_point_ids from progress for bulk mastery status
+    if (progress?.mastered_point_ids) {
+      for (const id of progress.mastered_point_ids) {
+        map.set(id, true);
+      }
+    }
+    // Override with the specific point status if available (more up-to-date)
     if (pointStatus) {
       map.set(pointStatus.point_id, pointStatus.mastered);
     }
     return map;
-  }, [pointStatus]);
+  }, [progress?.mastered_point_ids, pointStatus]);
 
   // Find current chapter and point objects
   const currentChapter = useMemo(
@@ -178,14 +181,14 @@ function KnowledgePage() {
     (pointId: number, mastered: boolean) => {
       toggleMasteredMutation.mutate({ pointId, mastered });
     },
-    [toggleMasteredMutation],
+    [toggleMasteredMutation.mutate],
   );
 
   const handleRecordView = useCallback(
     (pointId: number) => {
       recordViewMutation.mutate(pointId);
     },
-    [recordViewMutation],
+    [recordViewMutation.mutate],
   );
 
   const handleExpandChapter = useCallback((chapterId: number) => {
@@ -204,6 +207,18 @@ function KnowledgePage() {
       setSearchQuery(search.q);
     }
   }, [search.q]);
+  // Auto-navigate to first point when a chapter is selected on mobile without a point
+  useEffect(() => {
+    if (
+      isMobile &&
+      currentChapterId &&
+      !currentPointId &&
+      currentChapterPoints &&
+      currentChapterPoints.length > 0
+    ) {
+      navigateToPoint(currentChapterId, currentChapterPoints[0].id);
+    }
+  }, [isMobile, currentChapterId, currentPointId, currentChapterPoints, navigateToPoint]);
 
   return (
     <div className="space-y-4">

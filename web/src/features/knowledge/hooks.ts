@@ -73,7 +73,7 @@ export function useRecordView() {
       return resp.data.data;
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['learning'] });
+      void queryClient.invalidateQueries({ queryKey: ['learning', 'progress'] });
     },
   });
 }
