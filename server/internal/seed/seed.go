@@ -3,14 +3,20 @@ package seed
 import (
 	"context"
 	"database/sql"
+	"embed"
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 )
+
+// markdownFS embeds all chapter markdown files at compile time so the seed
+// pipeline is independent of the process working directory.
+//
+//go:embed markdown/*.md
+var markdownFS embed.FS
 
 // chapterMeta is the single source of truth for chapter titles and summaries.
 // Knowledge point bodies come from internal/seed/markdown/chXX.md (one section
@@ -184,31 +190,31 @@ var headingRE = regexp.MustCompile(`^##\s+(.+)$`)
 var separatorRE = regexp.MustCompile(`(?m)^---\s*$`)
 
 func loadMarkdownKnowledgePoints(path string) ([]string, error) {
-	data, err := os.ReadFile(path)
+	// The seed pipeline runs at server startup; the chapter markdown is
+	// embedded into the binary, so this read is cwd-independent.
+	relPath := path
+	if strings.HasPrefix(relPath, "internal/seed/") {
+		relPath = strings.TrimPrefix(relPath, "internal/seed/")
+	}
+	data, err := markdownFS.ReadFile(relPath)
 	if err != nil {
 		return nil, err
 	}
-
 	text := string(data)
-
 	sections := separatorRE.Split(text, -1)
-
 	var points []string
 	for _, section := range sections {
 		section = strings.TrimSpace(section)
 		if section == "" {
 			continue
 		}
-		// Skip sections that are just the "## 参考文献" references
 		if strings.HasPrefix(section, "## 参考文献") {
 			continue
 		}
-		// Check if this section starts with a "## Title" heading
 		lines := strings.Split(section, "\n")
 		if len(lines) > 0 && headingRE.MatchString(strings.TrimSpace(lines[0])) {
 			points = append(points, section)
 		}
 	}
-
 	return points, nil
 }

@@ -223,6 +223,21 @@ func (r *Repository) MigrateWrongQuestions(ctx context.Context, userID int) (int
 	return n, nil
 }
 
+// EnsureUserReviewItems creates review_items for every knowledge_card for the given user.
+// Idempotent: uses INSERT OR IGNORE so repeated calls are safe.
+func (r *Repository) EnsureUserReviewItems(ctx context.Context, userID int) (int64, error) {
+	res, err := r.db.ExecContext(ctx, `
+		INSERT OR IGNORE INTO review_items (user_id, item_type, item_id, state, step, due, reps, lapses)
+		SELECT ?, 'knowledge_card', kc.id, 1, 0, datetime('now'), 0, 0
+		FROM knowledge_cards kc
+	`, userID)
+	if err != nil {
+		return 0, fmt.Errorf("ensure user review items: %w", err)
+	}
+	n, _ := res.RowsAffected()
+	return n, nil
+}
+
 // normalizeTime converts any stored date format (RFC3339 or sqlite) to canonical UTC sqlite format.
 func normalizeTime(v sql.NullString) string {
 	if !v.Valid {

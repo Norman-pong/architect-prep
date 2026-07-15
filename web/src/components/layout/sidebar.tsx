@@ -35,10 +35,36 @@ export interface SidebarProps {
   onClose?: () => void;
 }
 
+function useIsMobile(): boolean {
+  const [isMobile, setIsMobile] = React.useState(() => {
+    if (typeof window === 'undefined') return true;
+    return window.matchMedia('(max-width: 767px)').matches;
+  });
+
+  React.useEffect(() => {
+    const mql = window.matchMedia('(max-width: 767px)');
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  }, []);
+
+  return isMobile;
+}
+
 export function Sidebar({ mobileOpen = false, onNavigate, onClose }: SidebarProps) {
   const { t } = useTranslation();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isMobile = useIsMobile();
 
+  // Close the mobile drawer on Escape (matches the backdrop click affordance).
+  React.useEffect(() => {
+    if (!isMobile || !mobileOpen) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose?.();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [isMobile, mobileOpen, onClose]);
   return (
     <>
       {/* Mobile backdrop */}
@@ -56,10 +82,14 @@ export function Sidebar({ mobileOpen = false, onNavigate, onClose }: SidebarProp
         className={cn(
           'flex w-60 flex-col border-r border-sidebar-border bg-sidebar',
           // Mobile: fixed drawer that slides in/out
-          'fixed inset-y-0 left-0 z-50 transform transition-transform duration-200 ease-out md:static md:translate-x-0',
-          mobileOpen ? 'translate-x-0' : '-translate-x-full',
+          'fixed inset-y-0 left-0 z-[60] transform transition-transform duration-200 ease-out md:static md:translate-x-0',
+          mobileOpen
+            ? 'translate-x-0'
+            : '-translate-x-full pointer-events-none md:pointer-events-auto',
           'md:flex',
         )}
+        inert={isMobile && !mobileOpen ? true : undefined}
+        aria-hidden={isMobile && !mobileOpen ? true : undefined}
       >
         <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-6">
           <span className="text-lg font-bold text-sidebar-foreground">{t('app.title')}</span>

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { api } from '@/lib/api';
 import { useOverallProgress, useLastProgress } from '@/features/learning/queries';
+import { useChapters } from '@/features/knowledge/hooks';
 import type { PracticeStats } from '@/features/practice/types';
 
 export const Route = createFileRoute('/_authenticated/')({
@@ -24,6 +25,7 @@ function DashboardPage() {
   const navigate = useNavigate();
 
   const { data: progress, isLoading: progressLoading } = useOverallProgress();
+  const { data: chapters, isLoading: chaptersLoading } = useChapters();
   const lastProgress = useLastProgress();
 
   const { data: practiceStats, isLoading: statsLoading } = useQuery({
@@ -58,7 +60,9 @@ function DashboardPage() {
             <BookIcon className="size-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">20</div>
+            <div className="text-2xl font-bold">
+              {chaptersLoading ? '--' : (chapters?.length ?? 0)}
+            </div>
             <p className="text-xs text-muted-foreground">
               {progressLoading ? '--' : `${masteredPoints}/${totalPoints} 知识点已掌握`}
             </p>

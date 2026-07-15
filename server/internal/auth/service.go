@@ -16,12 +16,19 @@ type UserRepository interface {
 	GetUserByID(ctx context.Context, id int) (*User, error)
 }
 
+// ReviewItemEnsurer creates review_items for a user when they first sign in.
+type ReviewItemEnsurer interface {
+	EnsureUserReviewItems(ctx context.Context, userID int) (int64, error)
+}
+
+
 // AuthService 认证业务逻辑
 type AuthService struct {
-	codeStore  *CodeStore
-	smtpSender *SMTPSender
-	jwtSecret  []byte
-	userRepo   UserRepository
+	codeStore     *CodeStore
+	smtpSender    *SMTPSender
+	jwtSecret     []byte
+	userRepo      UserRepository
+	reviewEnsurer ReviewItemEnsurer
 }
 
 // NewAuthService 创建认证服务
@@ -30,12 +37,14 @@ func NewAuthService(
 	smtpSender *SMTPSender,
 	jwtSecret string,
 	userRepo UserRepository,
+	reviewEnsurer ReviewItemEnsurer,
 ) *AuthService {
 	return &AuthService{
-		codeStore:  codeStore,
-		smtpSender: smtpSender,
-		jwtSecret:  []byte(jwtSecret),
-		userRepo:   userRepo,
+		codeStore:     codeStore,
+		smtpSender:    smtpSender,
+		jwtSecret:     []byte(jwtSecret),
+		userRepo:      userRepo,
+		reviewEnsurer: reviewEnsurer,
 	}
 }
 
@@ -64,6 +73,12 @@ func (s *AuthService) VerifyLogin(ctx context.Context, email, code string) (*Aut
 	user, err := s.userRepo.GetOrCreateUserByEmail(ctx, email)
 	if err != nil {
 		return nil, fmt.Errorf("get or create user: %w", err)
+	}
+
+	// Ensure review_items exist for this user (idempotent).
+	if _, err := s.reviewEnsurer.EnsureUserReviewItems(ctx, user.ID); err != nil {
+		// Fail-soft: log but do not block sign-in.
+		fmt.Printf("warning: ensure review items for user %d: %v\n", user.ID, err)
 	}
 
 	token, err := s.generateToken(user)

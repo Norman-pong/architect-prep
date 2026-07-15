@@ -11,6 +11,15 @@ export interface MarkdownProps {
   skipFirstHeading?: boolean;
 }
 
+/** Collapse a ReactNode into a plain string for mermaid's text source. */
+function extractChartText(node: ReactNode): string {
+  if (node == null || typeof node === 'boolean') return '';
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(extractChartText).join('');
+  // Objects (React elements, fragments) cannot be stringified safely; return empty.
+  return '';
+}
+
 // Initialize mermaid once
 let mermaidInitialized = false;
 function initMermaid() {
@@ -164,7 +173,7 @@ const components: Components = {
 
     // Render mermaid diagrams
     if (language === 'mermaid') {
-      const chartText = Array.isArray(children) ? children.join('') : String(children);
+      const chartText = extractChartText(children);
       return <MermaidDiagram chart={chartText} />;
     }
 

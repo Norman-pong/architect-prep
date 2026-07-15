@@ -43,6 +43,11 @@ func Register(cfg *config.Config) *gin.Engine {
 
 	v1 := r.Group("/api/v1")
 
+	// Review service must be built before auth because auth depends on it
+	// to ensure review_items for new users.
+	reviewRepo := review.NewRepository(database)
+	reviewService := review.NewService(reviewRepo)
+
 	// Auth routes (no JWT required for send-code/verify-login, JWT for /me)
 	authGroup := v1.Group("/auth")
 	{
@@ -56,7 +61,7 @@ func Register(cfg *config.Config) *gin.Engine {
 		smtpSender := auth.NewSMTPSender(cfg.SMTPHost, smtpPort, cfg.SMTPUser, cfg.SMTPPass, cfg.SMTPFrom)
 
 		userRepo := user.NewStore(database)
-		authService := auth.NewAuthService(codeStore, smtpSender, cfg.JWTSecret, userRepo)
+		authService := auth.NewAuthService(codeStore, smtpSender, cfg.JWTSecret, userRepo, reviewService)
 		authHandler := auth.NewHandler(authService)
 		authHandler.RegisterRoutes(authGroup)
 	}
@@ -71,8 +76,6 @@ func Register(cfg *config.Config) *gin.Engine {
 	}
 
 	// Review routes (JWT required) — must init before practice because practice depends on review
-	reviewRepo := review.NewRepository(database)
-	reviewService := review.NewService(reviewRepo)
 	reviewHandler := review.NewHandler(reviewRepo, reviewService)
 	reviewGroup := v1.Group("/review")
 	reviewGroup.Use(middleware.JWTAuth())

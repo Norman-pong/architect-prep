@@ -115,3 +115,9 @@ func (s *Service) EnsureReviewItem(ctx context.Context, userID int, itemType str
 func (s *Service) Exists(ctx context.Context, userID int, itemType string, itemID int) (bool, error) {
 	return s.repo.Exists(ctx, userID, itemType, itemID)
 }
+
+// EnsureUserReviewItems creates review_items for every knowledge_card for the given user.
+// Idempotent: uses INSERT OR IGNORE so repeated calls are safe.
+func (s *Service) EnsureUserReviewItems(ctx context.Context, userID int) (int64, error) {
+	return s.repo.EnsureUserReviewItems(ctx, userID)
+}

@@ -153,12 +153,6 @@ function KnowledgePage() {
   );
 
   // Navigation helpers
-  const navigateToChapter = useCallback(
-    (chapterId: number) => {
-      void navigate({ to: '/knowledge', search: { chapter: chapterId } });
-    },
-    [navigate],
-  );
 
   const navigateToPoint = useCallback(
     (chapterId: number, pointId: number) => {
@@ -248,7 +242,7 @@ function KnowledgePage() {
           chapters={chapters}
           progress={progress}
           isLoading={chaptersLoading}
-          onSelectChapter={navigateToChapter}
+          onSelectPoint={navigateToPoint}
           lastProgress={progress?.last_progress ?? null}
           onContinue={handleContinue}
         />

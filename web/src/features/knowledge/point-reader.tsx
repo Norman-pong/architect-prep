@@ -91,7 +91,7 @@ export function PointReader({
   return (
     <div className="flex flex-col">
       {/* Top sticky bar */}
-      <div className="sticky top-0 z-30 flex h-12 items-center justify-between gap-2 border-b border-border bg-card/80 px-3 backdrop-blur">
+      <div className="sticky top-0 z-30 flex h-12 items-center justify-between gap-2 border-b border-border bg-card px-3">
         <button
           type="button"
           onClick={onBack}
