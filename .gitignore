@@ -3,6 +3,7 @@ server/data/
 server/architect-prep
 server/tmp/
 server/.env
+tmp/  # Sprint 3.5 per-chapter agent staging
 
 # Frontend
 web/node_modules/
