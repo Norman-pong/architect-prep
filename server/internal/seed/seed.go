@@ -76,7 +76,6 @@ func Run(database *sql.DB) error {
 		questionCount++
 	}
 	log.Printf("seed complete: %d questions inserted", questionCount)
-	// Insert knowledge cards
 	cardCount := 0
 	for _, card := range KnowledgeCards {
 		// 查找 chapter_id by chapter_no
