@@ -43,7 +43,7 @@ func (r *Repository) GetDue(ctx context.Context, userID int, itemType string, pa
 	query := fmt.Sprintf(`
 		SELECT ri.id, ri.user_id, ri.item_type, ri.item_id, ri.stability, ri.difficulty, ri.step, ri.due, ri.reps, ri.lapses, ri.state, ri.last_review_at, ri.created_at,
 			q.content AS question_content,
-			kc.front AS card_front, kc.back AS card_back
+			kc.front AS card_front, kc.back AS card_back, kc.source AS card_source
 		FROM review_items ri
 		LEFT JOIN questions q ON ri.item_type = 'wrong_question' AND ri.item_id = q.id
 		LEFT JOIN knowledge_cards kc ON ri.item_type = 'knowledge_card' AND ri.item_id = kc.id
@@ -61,14 +61,14 @@ func (r *Repository) GetDue(ctx context.Context, userID int, itemType string, pa
 	var items []ReviewItem
 	for rows.Next() {
 		var ri ReviewItem
-		var questionContent, cardFront, cardBack sql.NullString
+		var questionContent, cardFront, cardBack, cardSource sql.NullString
 		var lastReviewAt, due, createdAt sql.NullString
 		var step sql.NullInt64
 		if err := rows.Scan(
 			&ri.ID, &ri.UserID, &ri.ItemType, &ri.ItemID,
 			&ri.Stability, &ri.Difficulty, &step, &due, &ri.Reps, &ri.Lapses, &ri.State,
 			&lastReviewAt, &createdAt,
-			&questionContent, &cardFront, &cardBack,
+			&questionContent, &cardFront, &cardBack, &cardSource,
 		); err != nil {
 			return nil, fmt.Errorf("scan review item: %w", err)
 		}
@@ -93,6 +93,10 @@ func (r *Repository) GetDue(ctx context.Context, userID int, itemType string, pa
 		if cardBack.Valid {
 			s := cardBack.String
 			ri.CardBack = &s
+		}
+		if cardSource.Valid {
+			s := cardSource.String
+			ri.CardSource = &s
 		}
 		items = append(items, ri)
 	}

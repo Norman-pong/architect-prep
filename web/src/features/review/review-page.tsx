@@ -136,7 +136,14 @@ function ReviewCardView({ item, leaving, isPending, onGrade }: ReviewCardViewPro
       )}
     >
       <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <Badge variant="info">{isWrong ? '错题' : '知识卡'}</Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="info">{isWrong ? '错题' : '知识卡'}</Badge>
+          {!isWrong && item.card_source && (
+            <span className="rounded bg-muted px-2 py-0.5 text-muted-foreground">
+              复习来源: {item.card_source}
+            </span>
+          )}
+        </div>
         <span>到期: {new Date(item.due).toLocaleString('zh-CN')}</span>
       </div>
 

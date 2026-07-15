@@ -19,16 +19,18 @@ type ReviewItem struct {
 	QuestionContent *string `json:"question_content,omitempty"` // for wrong_question
 	CardFront       *string `json:"card_front,omitempty"`       // for knowledge_card
 	CardBack        *string `json:"card_back,omitempty"`        // for knowledge_card
+	CardSource      *string `json:"card_source,omitempty"`      // 复习来源，例如 "ch3 §3.2"
 }
 
 // KnowledgeCard represents a Q&A flashcard tied to a knowledge point.
 type KnowledgeCard struct {
-	ID                 int64  `json:"id"`
+	ID                int64  `json:"id"`
 	KnowledgePointID  int    `json:"knowledge_point_id"`
-	ChapterID          int    `json:"chapter_id"`
-	Front              string `json:"front"`
-	Back               string `json:"back"`
-	SortOrder          int    `json:"sort_order"`
+	ChapterID         int    `json:"chapter_id"`
+	Front             string `json:"front"`
+	Back              string `json:"back"`
+	Source            string `json:"source"` // 复习来源，例如 "ch3 §3.2" 或 "ch3 (跨章节)"
+	SortOrder         int    `json:"sort_order"`
 }
 
 // ReviewStats holds summary statistics for the review dashboard.

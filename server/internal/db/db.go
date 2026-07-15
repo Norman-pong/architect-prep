@@ -188,6 +188,7 @@ CREATE TABLE IF NOT EXISTS knowledge_cards (
     chapter_id INTEGER NOT NULL,
     front TEXT NOT NULL,
     back TEXT NOT NULL,
+    source TEXT NOT NULL DEFAULT '',
     sort_order INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (knowledge_point_id) REFERENCES knowledge_points(id) ON DELETE CASCADE,
     FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE

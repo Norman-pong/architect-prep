@@ -20,6 +20,7 @@ export interface ReviewItem {
   question_content?: string;
   card_front?: string;
   card_back?: string;
+  card_source?: string; // 复习来源，例如 "ch3 §3.2"
 }
 
 export interface ReviewStats {
