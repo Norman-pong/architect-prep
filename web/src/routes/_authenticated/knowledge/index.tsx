@@ -8,6 +8,7 @@ import { DesktopOutline } from '@/features/knowledge/desktop-outline';
 import { PointReader } from '@/features/knowledge/point-reader';
 import { ChapterDrawer } from '@/features/knowledge/chapter-drawer';
 import { SearchSheet } from '@/features/knowledge/search-sheet';
+import { useSetHeader } from '@/components/layout/header-context';
 import {
   useChapters,
   useChapterPoints,
@@ -99,6 +100,39 @@ function KnowledgePage() {
   const currentChapterId = search.chapter;
   const currentPointId = search.point;
 
+  // Push page-level config into the unified Header (rendered by the layout).
+  // On reader view (pointId set), hide the page header entirely — the
+  // PointReader sticky bar takes over.
+  useSetHeader(
+    currentPointId
+      ? null
+      : {
+          title: '知识体系',
+          actions: (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSearchOpen(true)}
+                aria-label="搜索"
+              >
+                <Search className="size-5" />
+              </Button>
+              {isMobile && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setDrawerOpen(true)}
+                  aria-label="目录"
+                >
+                  <Menu className="size-5" />
+                </Button>
+              )}
+            </>
+          ),
+        },
+  );
+
   // Load points for current chapter (for reader view + drawer)
   const { data: currentChapterPoints } = useChapterPoints(currentChapterId);
 
@@ -161,6 +195,15 @@ function KnowledgePage() {
     [navigate],
   );
 
+  // Mobile only: tapping a chapter row jumps to ?chapter=X. The existing
+  // useEffect below auto-selects the first point once chapter points load.
+  const navigateToChapter = useCallback(
+    (chapterId: number) => {
+      void navigate({ to: '/knowledge', search: { chapter: chapterId } });
+    },
+    [navigate],
+  );
+
   const navigateBack = useCallback(() => {
     void navigate({ to: '/knowledge', search: {} });
   }, [navigate]);
@@ -216,33 +259,13 @@ function KnowledgePage() {
 
   return (
     <div className="space-y-4">
-      {/* Page header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">知识体系</h1>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => setSearchOpen(true)} aria-label="搜索">
-            <Search className="size-5" />
-          </Button>
-          {isMobile && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setDrawerOpen(true)}
-              aria-label="目录"
-            >
-              <Menu className="size-5" />
-            </Button>
-          )}
-        </div>
-      </div>
-
       {/* Mobile: Outline view */}
       {showMobileOutline && (
         <MobileOutline
           chapters={chapters}
           progress={progress}
           isLoading={chaptersLoading}
-          onSelectPoint={navigateToPoint}
+          onSelectChapter={navigateToChapter}
           lastProgress={progress?.last_progress ?? null}
           onContinue={handleContinue}
         />
@@ -281,35 +304,42 @@ function KnowledgePage() {
               isLoading={chaptersLoading}
               onToggleMastered={handleToggleMastered}
               onExpandChapter={handleExpandChapter}
+              onSelectPoint={navigateToPoint}
               pointStatusMap={pointStatusMap}
             />
           </CardContent>
         </Card>
       )}
 
-      {/* Chapter drawer (mobile) */}
-      <ChapterDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        chapters={chapters}
-        pointsMap={pointsMap}
-        progress={progress}
-        currentChapterId={currentChapterId}
-        currentPointId={currentPointId}
-        onSelect={navigateToPoint}
-      />
-
-      {/* Search sheet */}
-      <SearchSheet
-        open={searchOpen}
-        onClose={() => setSearchOpen(false)}
-        results={searchResults}
-        isLoading={searchLoading}
-        query={searchQuery}
-        onQueryChange={setSearchQuery}
-        onSelect={navigateToPoint}
-        isMobile={isMobile}
-      />
+      {/* Chapter drawer (mobile) — conditional render keeps [role=dialog]
+          out of the DOM until the user opens it. base-ui Dialog mount
+          semantics otherwise leak an empty dialog into the accessibility
+          tree on every knowledge page load. */}
+      {drawerOpen && (
+        <ChapterDrawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          chapters={chapters}
+          pointsMap={pointsMap}
+          progress={progress}
+          currentChapterId={currentChapterId}
+          currentPointId={currentPointId}
+          onSelect={navigateToPoint}
+        />
+      )}
+      {/* Search sheet — conditional render for the same dialog-leak reason. */}
+      {searchOpen && (
+        <SearchSheet
+          open={searchOpen}
+          onClose={() => setSearchOpen(false)}
+          results={searchResults}
+          isLoading={searchLoading}
+          query={searchQuery}
+          onQueryChange={setSearchQuery}
+          onSelect={navigateToPoint}
+          isMobile={isMobile}
+        />
+      )}
     </div>
   );
 }

@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useSetHeader } from '@/components/layout/header-context';
+import { PageHero } from '@/components/layout/page-hero';
 import type { PaginatedResponse, WrongQuestion } from './types';
 
 export function WrongQuestionsPage() {
@@ -19,7 +21,7 @@ export function WrongQuestionsPage() {
     queryKey: ['wrong-questions'],
     queryFn: async () => {
       const resp = await api.get('/practice/wrong-questions', {
-        params: { page: 1, page_size: 50 },
+        params: { page: 1, page_size: 100 },
       });
       return resp.data.data as PaginatedResponse<WrongQuestion>;
     },
@@ -36,15 +38,18 @@ export function WrongQuestionsPage() {
     },
     onSuccess: (data, variables) => {
       setSubmitResult((prev) => ({ ...prev, [variables.question_id]: data }));
-      if (data.is_correct) {
-        void queryClient.invalidateQueries({ queryKey: ['wrong-questions'] });
-        void queryClient.invalidateQueries({ queryKey: ['practice-stats'] });
-      }
+      void queryClient.invalidateQueries({ queryKey: ['practice-stats'] });
     },
   });
 
   const items = data?.items ?? [];
 
+  // Title goes to the layout Header. The count badge lives in the main
+  // content area (via PageHero below) so mobile (390px) doesn't show the
+  // same "X 道错题" number twice — header + main used to repeat it.
+  const countBadge =
+    items.length > 0 ? <Badge variant="destructive">{items.length} 道错题</Badge> : null;
+  useSetHeader({ title: '错题本' });
   function toggleOption(questionId: number, key: string, isMultiple: boolean) {
     if (submitResult[questionId]) return;
     setSelectedOptions((prev) => {
@@ -84,20 +89,20 @@ export function WrongQuestionsPage() {
 
   if (items.length === 0) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <p className="text-muted-foreground">暂无错题，继续加油！</p>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <PageHero>{countBadge}</PageHero>
+        <Card>
+          <CardContent className="py-12 text-center">
+            <p className="text-muted-foreground">暂无错题，继续加油！</p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">错题本</h1>
-        <Badge variant="destructive">{items.length} 道错题</Badge>
-      </div>
+      <PageHero>{countBadge}</PageHero>
 
       {items.map((wq) => {
         const q = wq.question;

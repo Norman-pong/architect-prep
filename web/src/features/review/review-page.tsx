@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/empty-state';
 import { cn } from '@/lib/utils';
 import { useReviewDue, useReviewGrade, useReviewMigrate, useReviewStats } from './queries';
+import { useSetHeader } from '@/components/layout/header-context';
+import { PageHero } from '@/components/layout/page-hero';
 import type { ReviewItem } from './types';
 
 // ─── Visual states ─────────────────────────────────────────────────────
@@ -41,6 +43,25 @@ export function ReviewPage() {
     setIndex(0);
   }, [queue?.items]);
 
+  // Page identity lives in the layout Header. The migrate button is the only
+  // dynamic action — render it into both the Header slot (desktop) and the
+  // PageHero band (mobile).
+  const migrateButton = (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => migrate.mutate()}
+      disabled={migrate.isPending}
+    >
+      {migrate.isPending ? '迁移中...' : '迁移旧错题'}
+    </Button>
+  );
+  useSetHeader({
+    title: t('nav.review'),
+    subtitle: '基于 FSRS 间隔重复算法的每日复习',
+    actions: migrateButton,
+  });
+
   if (statsLoading && queueLoading) {
     return <p className="text-muted-foreground">加载中...</p>;
   }
@@ -68,22 +89,9 @@ export function ReviewPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold">{t('nav.review')}</h1>
-          <p className="text-sm text-muted-foreground">基于 FSRS 间隔重复算法的每日复习</p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => migrate.mutate()}
-          disabled={migrate.isPending}
-        >
-          {migrate.isPending ? '迁移中...' : '迁移旧错题'}
-        </Button>
-      </header>
+      <PageHero>{migrateButton}</PageHero>
 
-      <section className="grid gap-4 sm:grid-cols-3">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <ReviewStat label="今日到期" value={stats?.due_count} accent="text-primary" />
         <ReviewStat label="今日已复习" value={stats?.reviewed_today} accent="text-success" />
         <ReviewStat label="总复习项" value={stats?.total_items} accent="text-foreground" />
@@ -174,6 +182,9 @@ function ReviewCardView({ item, leaving, isPending, onGrade }: ReviewCardViewPro
         </CardContent>
       </Card>
 
+      {/* Rating buttons: mobile = 2x2 grid, desktop = 1x4. Each button is
+          min-h-[56px] so the 4th button never gets clipped on 390px wide
+          phones (was ~30px before — too small to tap FSRS rating #4). */}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {([1, 2, 3, 4] as const).map((r) => (
           <Button
@@ -182,7 +193,7 @@ function ReviewCardView({ item, leaving, isPending, onGrade }: ReviewCardViewPro
             size="lg"
             disabled={isPending || !flipped}
             onClick={() => onGrade(r)}
-            className="flex-col gap-0.5 py-3"
+            className="flex min-h-[56px] flex-col gap-0.5 px-2 py-2"
           >
             <span className="text-sm font-semibold">{RATING_LABELS[r].label}</span>
             <span className="text-[10px] font-normal opacity-80">{RATING_LABELS[r].hint}</span>
