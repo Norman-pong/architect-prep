@@ -40,7 +40,7 @@
 | ---------- | -------- | ---- | -------- | ---- |
 | 2026-07-13 | [项目骨架搭建](phase/2026-07-13-foundation-skeleton.md) | 已完成 | [PRD（已归档）](prd/archive/2026-07-13-architect-prep-platform.md) | 前后端+Docker 骨架 |
 | 2026-07-14 | [知识体系入库与刷题核心](phase/2026-07-14-knowledge-and-practice.md) | 已完成 | [PRD（已归档）](prd/archive/2026-07-13-architect-prep-platform.md) | 知识入库+刷题功能 |
-| 2026-07-14 | [FSRS 遗忘曲线复习系统](phase/2026-07-14-fsrs-review-system.md) | 已完成 | [FSRS PRD](prd/2026-07-14-fsrs-review-system.md) | FSRS6 间隔重复+全量知识卡片（456 张入库） |
+| 2026-07-14 | [FSRS 遗忘曲线复习系统](phase/2026-07-14-fsrs-review-system.md) | 已完成 | [FSRS PRD](prd/2026-07-14-fsrs-review-system.md) | FSRS6 间隔重复+全量知识卡片（456 张入库）；F1-F10 浏览器全流程实证见 commit `4117366` + `6343045` |
 
 ## 架构文档（Architecture）
 
