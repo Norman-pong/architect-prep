@@ -112,6 +112,24 @@ export function isChapterCompleted(
   return total > 0 && total === mastered;
 }
 
+/** Map a 0..1 mastery ratio to a Tailwind color class.
+ *  0%        → destructive (red)    — needs attention
+ *  1-29%     → destructive (red)    — barely started
+ *  30-69%    → warning (amber)      — in progress
+ *  70-99%    → primary (blue)       — almost there
+ *  100%      → success (green)      — mastered
+ *  Use `isChapterCompleted` for the explicit 100% green path. */
+export function getMasteryLevel(
+  mastered: number,
+  total: number,
+): 'destructive' | 'warning' | 'primary' {
+  if (total <= 0 || mastered <= 0) return 'destructive';
+  const ratio = mastered / total;
+  if (ratio < 0.3) return 'destructive';
+  if (ratio < 0.7) return 'warning';
+  return 'primary';
+}
+
 // ── Navigation helpers ───────────────────────────────
 
 export function findCrossChapterNext(

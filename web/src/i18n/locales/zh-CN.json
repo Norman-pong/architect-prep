@@ -20,7 +20,8 @@
     "verifyCode": "验证码",
     "nickname": "昵称",
     "loginButton": "登录 / 注册",
-    "codeSent": "验证码已发送"
+    "codeSent": "验证码已发送",
+    "userMenu": "用户菜单"
   },
   "theme": {
     "light": "浅色",

@@ -1,8 +1,8 @@
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useAuthStore } from '@/stores/auth-store';
 import { Sidebar } from '@/components/layout/sidebar';
-import { Header } from '@/components/layout/header';
+import { HeaderContextProvider } from '@/components/layout/header-context';
 
 export const Route = createFileRoute('/_authenticated')({
   beforeLoad: () => {
@@ -16,6 +16,7 @@ export const Route = createFileRoute('/_authenticated')({
 
 function AuthenticatedLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const openSidebar = useCallback(() => setMobileOpen(true), []);
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -25,10 +26,17 @@ function AuthenticatedLayout() {
         onClose={() => setMobileOpen(false)}
       />
       <div className="flex flex-1 flex-col overflow-hidden">
-        <Header onMenuClick={() => setMobileOpen(true)} />
-        <main className="flex-1 overflow-auto p-3 md:p-6">
-          <Outlet />
-        </main>
+        <HeaderContextProvider openSidebar={openSidebar}>
+          <main className="flex-1 overflow-auto bg-background md:bg-muted/30">
+            <div className="mx-auto max-w-5xl md:p-8">
+              {/* Mobile: no card wrapper — content uses the page padding directly. */}
+              {/* Desktop: single white card with rounded corners + shadow (newapi style). */}
+              <div className="md:rounded-xl md:border md:border-border md:bg-card md:p-6 md:shadow-sm">
+                <Outlet />
+              </div>
+            </div>
+          </main>
+        </HeaderContextProvider>
       </div>
     </div>
   );

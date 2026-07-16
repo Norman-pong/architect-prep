@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { Button } from '@/components/ui/button';
 import { Field, Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { BrandPanel } from './brand-panel';
 import { cn } from '@/lib/utils';
 
 function MailIcon({ className }: { className?: string }) {
@@ -106,81 +107,93 @@ export function LoginPage() {
       setIsVerifying(false);
     }
   }
-
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
-      {/* Decorative background */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -left-24 -top-24 size-72 rounded-full bg-primary/15 blur-3xl"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -bottom-32 -right-24 size-96 rounded-full bg-accent/30 blur-3xl"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute right-1/4 top-1/3 size-40 rounded-full bg-primary/10 blur-2xl"
-      />
+    <div className="relative grid min-h-screen md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+      {/* Brand panel (md+) */}
+      <BrandPanel />
 
-      <Card className="relative w-full max-w-sm shadow-lg">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-center text-xl">{t('app.title')}</CardTitle>
-          <CardDescription className="text-center">{t('app.subtitle')}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          {error && (
-            <div className="rounded-md bg-destructive/10 px-4 py-2 text-sm text-destructive">
-              {error}
-            </div>
+      {/* Form area */}
+      <div className="relative flex items-center justify-center overflow-hidden bg-background p-4">
+        {/* Decorative blobs (mobile only — desktop has the brand panel) */}
+        <div
+          aria-hidden="true"
+          className={cn(
+            'pointer-events-none absolute -left-24 -top-24 size-72 rounded-full bg-primary/15 blur-3xl md:hidden',
           )}
+        />
+        <div
+          aria-hidden="true"
+          className={cn(
+            'pointer-events-none absolute -bottom-32 -right-24 size-96 rounded-full bg-accent/30 blur-3xl md:hidden',
+          )}
+        />
+        <div
+          aria-hidden="true"
+          className={cn(
+            'pointer-events-none absolute right-1/4 top-1/3 size-40 rounded-full bg-primary/10 blur-2xl md:hidden',
+          )}
+        />
 
-          <Field label={t('auth.email')}>
-            <div className="relative">
-              <MailIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="pl-9"
-              />
-            </div>
-          </Field>
+        <Card className="relative w-full max-w-sm shadow-lg">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-center text-xl md:hidden">{t('app.title')}</CardTitle>
+            <CardTitle className="text-center text-xl">登录账号</CardTitle>
+            <CardDescription className="text-center">使用邮箱接收验证码</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            {error && (
+              <div className="rounded-md bg-destructive/10 px-4 py-2 text-sm text-destructive">
+                {error}
+              </div>
+            )}
 
-          <Field label={t('auth.verifyCode')}>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <KeyIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Field label={t('auth.email')}>
+              <div className="relative">
+                <MailIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  maxLength={6}
-                  placeholder="123456"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
                   className="pl-9"
                 />
               </div>
-              <Button
-                variant="secondary"
-                onClick={sendCode}
-                disabled={isSendingCode || !email}
-                className="shrink-0"
-              >
-                {isSendingCode ? <SpinnerIcon className="size-4" /> : t('auth.sendCode')}
-              </Button>
-            </div>
-            {codeSent && <p className="text-xs text-muted-foreground">{t('auth.codeSent')}</p>}
-          </Field>
+            </Field>
 
-          <Button
-            onClick={verifyLogin}
-            disabled={isVerifying || !email || !code}
-            className="w-full"
-          >
-            {isVerifying ? <SpinnerIcon className="size-4" /> : t('auth.loginButton')}
-          </Button>
-        </CardContent>
-      </Card>
+            <Field label={t('auth.verifyCode')}>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <KeyIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    maxLength={6}
+                    placeholder="123456"
+                    className="pl-9"
+                  />
+                </div>
+                <Button
+                  variant="secondary"
+                  onClick={sendCode}
+                  disabled={isSendingCode || !email}
+                  className="shrink-0"
+                >
+                  {isSendingCode ? <SpinnerIcon className="size-4" /> : t('auth.sendCode')}
+                </Button>
+              </div>
+              {codeSent && <p className="text-xs text-muted-foreground">{t('auth.codeSent')}</p>}
+            </Field>
+
+            <Button
+              onClick={verifyLogin}
+              disabled={isVerifying || !email || !code}
+              className="w-full"
+            >
+              {isVerifying ? <SpinnerIcon className="size-4" /> : t('auth.loginButton')}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

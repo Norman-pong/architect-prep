@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { EmptyState } from '@/components/empty-state';
+import { useSetHeader } from '@/components/layout/header-context';
+import { PageHero } from '@/components/layout/page-hero';
 import type { Question, PaginatedResponse, SubmitResponse } from './types';
 
 export function PracticePage() {
@@ -49,6 +51,20 @@ export function PracticePage() {
   const questions = questionList?.items ?? [];
   const currentQuestion = questions[currentIndex];
   const isMultiple = currentQuestion?.question_type === 'multiple';
+
+  // Page identity lives in the layout Header. The progress badge is a dynamic
+  // piece of state — we render it both into the Header's action slot (desktop)
+  // and the PageHero band (mobile, below the header). Same JSX, two positions.
+  const progressBadge = (
+    <Badge variant="info" className="px-3 py-1 text-sm">
+      {currentIndex + 1} / {questions.length}
+    </Badge>
+  );
+  useSetHeader({
+    title: '刷题练习',
+    subtitle: '单选/多选,每题 1 个正确答案',
+    actions: progressBadge,
+  });
 
   function toggleOption(key: string) {
     if (submitResult) return;
@@ -111,15 +127,10 @@ export function PracticePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">刷题练习</h1>
-          <p className="mt-1 text-sm text-muted-foreground">单选/多选,每题 1 个正确答案</p>
-        </div>
-        <Badge variant="info" className="px-3 py-1 text-sm">
-          {currentIndex + 1} / {questions.length}
-        </Badge>
-      </div>
+      {/* Mobile-only: progress badge lives here on small screens so it never sits
+ above the question card. On desktop the same Badge is rendered into the
+ Header's action slot via useSetHeader above. */}
+      <PageHero>{progressBadge}</PageHero>
 
       <Card>
         <CardHeader>

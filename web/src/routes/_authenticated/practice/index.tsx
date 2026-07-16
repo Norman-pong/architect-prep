@@ -18,5 +18,7 @@ function validateSearch(search: Record<string, unknown>): PracticeSearch {
 
 export const Route = createFileRoute('/_authenticated/practice/')({
   validateSearch,
+  // Page identity lives inside PracticePage (features/practice/quiz.tsx)
+  // via useSetHeader. The route file is intentionally a pass-through.
   component: PracticePage,
 });

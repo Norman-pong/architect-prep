@@ -1,63 +1,80 @@
-import { useTranslation } from 'react-i18next';
-import { useThemeStore } from '@/stores/theme-store';
-import { useAuthStore } from '@/stores/auth-store';
-import { Button } from '@/components/ui/button';
-import { MenuIcon, MoonIcon, SunIcon } from '@/components/ui/icon';
+import type { ReactNode } from 'react';
+import { ChevronLeft, Menu as MenuIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export interface HeaderProps {
-  onMenuClick?: () => void;
+  /** Page title — required. Shown as the main label on mobile, hidden on desktop
+   *  when a sidebar is permanently visible (desktop sidebar already labels the section). */
+  title: string;
+  /** Optional subtitle (e.g. chapter title in a reader view). Renders smaller than title. */
+  subtitle?: string;
+  /** When provided, renders a back arrow instead of the sidebar hamburger on mobile. */
+  onBack?: () => void;
+  /** Mobile-only sidebar trigger (left-drawer with main nav). When `onBack` is also set,
+   *  `onBack` wins so the back chevron takes the leftmost slot. */
+  onOpenSidebar?: () => void;
+  /** Right-side actions (search button, theme toggle, etc.). Rendered identically on
+   *  mobile and desktop. */
+  actions?: ReactNode;
 }
 
-export function Header({ onMenuClick }: HeaderProps) {
-  const { t } = useTranslation();
-  const { theme, toggleTheme } = useThemeStore();
-  const { auth, reset } = useAuthStore();
-
-  // Header's theme display mirrors the resolved (effective) theme so the icon
-  // always matches what the user is actually looking at.
-  const isDark =
-    theme === 'dark' ||
-    (theme === 'system' &&
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-color-scheme: dark)').matches);
+/**
+ * Unified top header for all authenticated pages.
+ *
+ * Layout rules (per docs/architecture/mobile-learning-design.md §1.1, §1.7):
+ *  - Mobile (<768px): h-12, sticky top-0, hamburger (or back chevron) + title + actions.
+ *  - Desktop (≥768px): h-16, sticky top-0, title + actions. No hamburger — sidebar
+ *    is permanently visible on the left.
+ *  - Touch targets ≥44×44px on every interactive slot.
+ */
+export function Header({ title, subtitle, onBack, onOpenSidebar, actions }: HeaderProps) {
+  // Mobile leftmost button: back arrow wins over hamburger when both provided.
+  const showBack = !!onBack;
+  const showHamburger = !showBack && !!onOpenSidebar;
 
   return (
-    <header className="flex h-16 items-center justify-between gap-2 border-b border-border bg-card px-4 md:px-6">
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onMenuClick}
-          aria-label="Open menu"
-          className="md:hidden"
-        >
-          <MenuIcon size={20} />
-        </Button>
-      </div>
-
-      <div className="flex items-center gap-2 md:gap-4">
-        <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
-          {isDark ? <SunIcon size={20} /> : <MoonIcon size={20} />}
-        </Button>
-
-        {auth.user && (
-          <div className="flex items-center gap-3">
-            <span className="hidden text-sm font-medium text-foreground sm:inline">
-              {auth.user.nickname || auth.user.email}
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                reset();
-                window.location.href = '/login';
-              }}
-            >
-              {t('auth.logout')}
-            </Button>
-          </div>
+    <header
+      className={cn(
+        'sticky top-0 z-30 flex shrink-0 items-center gap-2 border-b border-border bg-background/80 px-3 backdrop-blur-md',
+        'h-12 md:h-16',
+      )}
+    >
+      {/* Left: back or hamburger (mobile) — desktop has no left slot (sidebar is permanent). */}
+      <div className="flex w-9 shrink-0 items-center md:hidden">
+        {showBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            aria-label="返回"
+            className="flex h-9 w-9 items-center justify-center rounded-md text-foreground transition-colors hover:bg-muted"
+          >
+            <ChevronLeft className="size-5" />
+          </button>
+        )}
+        {showHamburger && (
+          <button
+            type="button"
+            onClick={onOpenSidebar}
+            aria-label="打开菜单"
+            className="flex h-9 w-9 items-center justify-center rounded-md text-foreground transition-colors hover:bg-muted"
+          >
+            <MenuIcon className="size-5" />
+          </button>
         )}
       </div>
+
+      {/* Title (truncates on overflow). Subtitle renders below title on mobile if both given. */}
+      <div className="flex min-w-0 flex-1 flex-col justify-center md:flex-row md:items-baseline md:gap-2">
+        <h1 className="truncate text-base font-semibold text-foreground md:text-lg">{title}</h1>
+        {subtitle && (
+          <span className="hidden truncate text-sm text-muted-foreground md:inline">
+            {subtitle}
+          </span>
+        )}
+      </div>
+
+      {/* Right: page actions (search, theme, etc.). */}
+      <div className="flex shrink-0 items-center gap-1">{actions}</div>
     </header>
   );
 }

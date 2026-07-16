@@ -136,22 +136,21 @@ export function PointReader({
       </div>
 
       {/* Content */}
-      <div className="knowledge-prose flex-1 px-3 py-4 text-base leading-relaxed md:text-sm md:leading-normal">
+      <div className="knowledge-prose flex-1 px-3 pt-4 text-base leading-relaxed md:text-sm md:leading-normal pb-[calc(100px+env(safe-area-inset-bottom))]">
         <Markdown content={point.content} skipFirstHeading />
       </div>
 
       {/* Chapter exam questions link */}
       <ChapterExamLink chapterId={chapter.id} chapterNo={chapter.chapter_no} />
 
-      {/* Bottom sticky toolbar */}
-      <div className="sticky bottom-0 z-30 flex h-14 items-center gap-2 border-t border-border bg-card px-2">
-        {/* Prev */}
+      {/* Bottom sticky toolbar — h-16 + safe-area inset so labels never get clipped on small phones */}
+      <div className="sticky bottom-0 z-30 flex min-h-[68px] items-center gap-2 border-t border-border bg-card px-2 pb-[env(safe-area-inset-bottom)] pt-1.5">
         <button
           type="button"
           disabled={!prevPoint}
           onClick={() => prevPoint && prevChapter && onNavigate(prevChapter.id, prevPoint.id)}
           className={cn(
-            'flex min-h-[44px] flex-1 items-center justify-center gap-1 rounded-md px-2 text-sm font-medium transition-colors',
+            'flex min-h-[44px] flex-1 items-center justify-center gap-1 whitespace-nowrap rounded-md px-2 text-sm font-medium transition-colors',
             prevPoint
               ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
               : 'bg-muted text-muted-foreground opacity-50',
@@ -166,7 +165,7 @@ export function PointReader({
           type="button"
           onClick={() => onToggleMastered(point.id, !isMastered)}
           className={cn(
-            'flex min-h-[44px] flex-1 items-center justify-center gap-1 rounded-md px-2 text-sm font-medium transition-colors',
+            'flex min-h-[44px] flex-1 items-center justify-center gap-1 whitespace-nowrap rounded-md px-2 text-sm font-medium transition-colors',
             isMastered
               ? 'bg-success text-success-foreground'
               : 'bg-primary text-primary-foreground hover:bg-primary-hover',
@@ -191,7 +190,7 @@ export function PointReader({
           disabled={!nextPoint}
           onClick={() => nextPoint && nextChapter && onNavigate(nextChapter.id, nextPoint.id)}
           className={cn(
-            'flex min-h-[44px] flex-1 items-center justify-center gap-1 rounded-md px-2 text-sm font-medium transition-colors',
+            'flex min-h-[44px] flex-1 items-center justify-center gap-1 whitespace-nowrap rounded-md px-2 text-sm font-medium transition-colors',
             nextPoint
               ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
               : 'bg-muted text-muted-foreground opacity-50',
