@@ -155,7 +155,7 @@ func (r *Repository) GetByItem(ctx context.Context, userID int, itemType string,
 // Create inserts a new review item with state=Learning and due=now, ignoring conflicts.
 func (r *Repository) Create(ctx context.Context, userID int, itemType string, itemID int) error {
 	_, err := r.db.ExecContext(ctx,
-		`INSERT OR IGNORE INTO review_items (user_id, item_type, item_id, state, step, due, reps, lapses) VALUES (?, ?, ?, 1, 0, datetime('now'), 0, 0)`,
+		`INSERT OR IGNORE INTO review_items (user_id, item_type, item_id, state, step, due, reps, lapses) VALUES (?, ?, ?, 1, 0, datetime('now', '+' || (abs(random() % 72) + 1) || ' hours'), 0, 0)`,
 		userID, itemType, itemID,
 	)
 	if err != nil {
@@ -212,7 +212,7 @@ func (r *Repository) GetStats(ctx context.Context, userID int) (*ReviewStats, er
 func (r *Repository) MigrateWrongQuestions(ctx context.Context, userID int) (int64, error) {
 	res, err := r.db.ExecContext(ctx, `
 		INSERT OR IGNORE INTO review_items (user_id, item_type, item_id, state, step, due, reps, lapses)
-		SELECT user_id, 'wrong_question', question_id, 1, 0, datetime('now'), 0, 0
+		SELECT user_id, 'wrong_question', question_id, 1, 0, datetime('now', '+' || (abs(random() % 72) + 1) || ' hours'), 0, 0
 		FROM wrong_questions
 		WHERE user_id = ?
 	`, userID)
@@ -228,7 +228,7 @@ func (r *Repository) MigrateWrongQuestions(ctx context.Context, userID int) (int
 func (r *Repository) EnsureUserReviewItems(ctx context.Context, userID int) (int64, error) {
 	res, err := r.db.ExecContext(ctx, `
 		INSERT OR IGNORE INTO review_items (user_id, item_type, item_id, state, step, due, reps, lapses)
-		SELECT ?, 'knowledge_card', kc.id, 1, 0, datetime('now'), 0, 0
+		SELECT ?, 'knowledge_card', kc.id, 1, 0, datetime('now', '+' || (abs(random() % 72) + 1) || ' hours'), 0, 0
 		FROM knowledge_cards kc
 	`, userID)
 	if err != nil {

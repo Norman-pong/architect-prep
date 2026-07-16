@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"math/big"
+	"os"
 	"strconv"
 	"time"
 
@@ -50,6 +51,7 @@ func NewAuthService(
 
 
 // SendCode 生成验证码并发送邮件
+// 当 DEV_ECHO_CODE=1 时跳过 SMTP 发送（验证码由 /_dev_code 端点返回），避免 dev 环境依赖未启动的 mail sink。
 func (s *AuthService) SendCode(ctx context.Context, email string) error {
 	code, err := generateRandomCode(6)
 	if err != nil {
@@ -57,6 +59,10 @@ func (s *AuthService) SendCode(ctx context.Context, email string) error {
 	}
 
 	s.codeStore.SetCode(email, code)
+
+	if os.Getenv("DEV_ECHO_CODE") == "1" {
+		return nil
+	}
 
 	if err := s.smtpSender.SendVerificationCode(email, code); err != nil {
 		return fmt.Errorf("send email: %w", err)

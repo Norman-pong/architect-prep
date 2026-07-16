@@ -145,7 +145,7 @@ func Run(database *sql.DB) error {
 	// for every knowledge_card, so the "今日复习" page can show knowledge cards.
 	reviewCount, err := database.ExecContext(ctx, `
 		INSERT OR IGNORE INTO review_items (user_id, item_type, item_id, state, step, due, reps, lapses)
-		SELECT u.id, 'knowledge_card', kc.id, 1, 0, datetime('now'), 0, 0
+		SELECT u.id, 'knowledge_card', kc.id, 1, 0, datetime('now', '+' || (abs(random() % 72) + 1) || ' hours'), 0, 0
 		FROM users u, knowledge_cards kc
 	`)
 	if err != nil {
@@ -158,7 +158,7 @@ func Run(database *sql.DB) error {
 	// P2 fix: also migrate any pre-existing wrong_questions into review_items.
 	migCount, err := database.ExecContext(ctx, `
 		INSERT OR IGNORE INTO review_items (user_id, item_type, item_id, state, step, due, reps, lapses)
-		SELECT user_id, 'wrong_question', question_id, 1, 0, datetime('now'), 0, 0
+		SELECT user_id, 'wrong_question', question_id, 1, 0, datetime('now', '+' || (abs(random() % 72) + 1) || ' hours'), 0, 0
 		FROM wrong_questions
 	`)
 	if err != nil {

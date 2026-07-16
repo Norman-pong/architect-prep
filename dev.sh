@@ -60,11 +60,18 @@ info "构建后端..."
 log "后端构建完成"
 
 # ── 4. 启动后端 ──────────────────────────────────────────────
+# 本脚本默认不触发真邮件，所有验证码由 /api/v1/auth/_dev_code 返回
 info "启动后端 → http://localhost:$PORT"
 DB_PATH="$DB_PATH" \
 JWT_SECRET="$JWT_SECRET" \
 PORT="$PORT" \
 ENV_FILE="$SERVER_DIR/.env" \
+DEV_ECHO_CODE=1 \
+SMTP_HOST=localhost \
+SMTP_PORT=1025 \
+SMTP_USER=dev@local \
+SMTP_PASS=dev \
+SMTP_FROM=dev@local \
 "$SERVER_DIR/tmp/architect-prep-dev" &
 BACKEND_PID=$!
 PIDS+=("$BACKEND_PID")
