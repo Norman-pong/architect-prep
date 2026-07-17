@@ -1,0 +1,37 @@
+# Runtime database files
+server/data/*.db
+server/data/*.db-shm
+server/data/*.db-wal
+
+# Go build artifacts
+server/tmp/
+server/architect-prep
+
+# Frontend build artifacts (will be built in Docker)
+web/node_modules/
+web/dist/
+
+# Dev / IDE
+.git/
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+*.log
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Docker
+docker-compose.override.yml
+docker-compose.build.yml
+
+# Docs / SDD / screenshots (not needed in image)
+docs/
+.sdd/
+.lore/
+screenshots/
+src/

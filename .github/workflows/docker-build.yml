@@ -1,0 +1,98 @@
+name: Build & Push Docker Image
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: architect-prep
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix=,format=short
+            type=semver,pattern=v{{version}}
+            type=semver,pattern=v{{major}}.{{minor}}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Make GHCR package public
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # GHCR packages default to private on first creation; without public
+          # visibility, anonymous `docker pull` for end users fails.
+          # This repo's owner is a user (not an org), so /user/packages/... is correct.
+          owner="${{ github.repository_owner }}"
+          pkg="${{ env.IMAGE_NAME }}"
+          echo "Setting ghcr.io/${owner}/${pkg} visibility to public..."
+          gh api \
+            --method PATCH \
+            -H "Accept: application/vnd.github+json" \
+            "/user/packages/container/${pkg}" \
+            -f visibility=public
+          # If the PATCH above failed, this step exits non-zero and the
+          # subsequent smoke test will surface the real cause (private pull denied).
+
+      - name: Smoke-test anonymous pull
+        env:
+          # metadata-action outputs.tags is a newline-separated list of ALL tags
+          # produced for this run. Pick the FIRST line as a concrete, verifiable
+          # target — on main it's `latest`, on tag push it's `v{version}`,
+          # on manual dispatch it's `{sha}`. Using the list (not `version` output)
+          # avoids the missing-`v` prefix trap.
+          ALL_TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          owner="${{ github.repository_owner }}"
+          pkg="${{ env.IMAGE_NAME }}"
+          pull_tag="$(printf '%s\n' "${ALL_TAGS}" | sed -n '1p' | sed 's@^.*:@@')"
+          if [ -z "${pull_tag}" ]; then
+            echo "::error::Could not derive a concrete tag from metadata-action output."
+            echo "ALL_TAGS=${ALL_TAGS}"
+            exit 1
+          fi
+          image="ghcr.io/${owner}/${pkg}:${pull_tag}"
+          echo "Logging out from GHCR to simulate anonymous client..."
+          docker logout ghcr.io 2>/dev/null || true
+          echo "Anonymous pull test: ${image}"
+          if docker pull "${image}"; then
+            echo "Pull OK — anonymous deploy via docker compose up -d will work for tag ${pull_tag}."
+          else
+            echo "::error::Anonymous pull failed. Verify package is public at https://github.com/${owner}/${pkg}/packages/container/${pkg}/settings"
+            exit 1
+          fi

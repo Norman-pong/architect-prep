@@ -23,7 +23,7 @@
 | 样式 | Tailwind CSS | 4.3 |
 | 状态 | Zustand | 5.0 |
 | FSRS | imxw/go-fsrs | — |
-| 部署 | Docker Compose（单镜像） | — |
+| 部署 | Docker Compose + GHCR（单镜像） | — |
 
 ## 仓库结构
 
@@ -33,7 +33,7 @@
 │   ├── cmd/                 # 主入口
 │   ├── internal/            # 业务模块（auth/knowledge/practice/review/...）
 │   ├── scripts/             # 代码生成脚本（如 gencards.go）
-│   └── data/                # 运行时数据
+│   └── data/                # 题库数据（bank.json 唯一真源）
 ├── web/                     # React 前端（vite-plus）
 │   ├── src/
 │   │   ├── routes/          # TanStack Router 文件路由
@@ -48,8 +48,11 @@
 │   ├── architecture/        # 架构设计
 │   └── reference/           # 参考资料
 ├── dev.sh                   # 一键启动本地开发环境
-├── Dockerfile               # 单镜像构建（Go + 静态前端）
-├── docker-compose.yml       # 生产部署
+├── Dockerfile               # 多阶段构建（Bun 前端 + Go 后端 + seed）
+├── docker-compose.yml       # 一键部署（拉 GHCR 镜像 + mailpit）
+├── docker-compose.build.yml # 从源码构建备选
+├── .env.example             # 环境变量模板（SMTP / JWT）
+├── .github/workflows/       # CI（自动构建并推送镜像到 GHCR）
 └── docs/index.md            # 文档总索引
 ```
 
@@ -82,16 +85,46 @@
 ./dev.sh --reset
 ```
 
-### Docker 部署
+### Docker 部署（一键）
 
 ```bash
-JWT_SECRET=<your-secret> \
-SMTP_HOST=<host> SMTP_PORT=<port> \
-SMTP_USER=<user> SMTP_PASS=<pass> SMTP_FROM=<addr> \
 docker compose up -d
 ```
 
-单镜像部署：后端 Go 进程同时提供 API（:8080）和静态前端。SPA fallback 已配置。
+就这么简单。默认配置自带：
+
+- **应用**：http://localhost:8080（后端 API + 前端 SPA）
+- **验证码邮箱**：http://localhost:8025（mailpit 邮件捕获器，输入邮箱注册后在这里查看验证码）
+
+- 镜像从 GHCR 拉取，无需本地安装 Go / Bun / vp。
+
+> CI 首次发布时会自动把 GHCR 包设置为 public，并通过匿名 `docker pull` smoke test 验证可拉取。如果该步骤失败，到 https://github.com/Norman-pong/architect-prep/packages/container/architect-prep/settings 手动改为 public。
+
+#### 生产环境配置
+
+```bash
+cp .env.example .env
+# 编辑 .env，填入真实 JWT_SECRET 和 SMTP 凭据
+docker compose up -d
+```
+
+#### 从源码构建
+
+```bash
+docker compose -f docker-compose.build.yml up -d --build
+```
+
+#### 国内加速
+
+GHCR 镜像拉取慢时，配置 Docker 镜像加速：
+
+```json
+// ~/.orbstack/config/docker.json (OrbStack)
+// 或 /etc/docker/daemon.json (Docker Desktop)
+{
+  "registry-mirrors": ["https://docker.1ms.run"]
+}
+```
 
 ## 工具链
 

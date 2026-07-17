@@ -1,0 +1,35 @@
+# 本地构建备选：不拉 GHCR 镜像，直接从源码 docker build
+# 用法: docker compose -f docker-compose.build.yml up -d --build
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: "8080"
+      DB_PATH: "/data/architect.db"
+      JWT_SECRET: "${JWT_SECRET:-dev-secret-change-in-production-32chars-min}"
+      SMTP_HOST: "${SMTP_HOST:-mailpit}"
+      SMTP_PORT: "${SMTP_PORT:-1025}"
+      SMTP_USER: "${SMTP_USER:-dev@local}"
+      SMTP_PASS: "${SMTP_PASS:-dev}"
+      SMTP_FROM: "${SMTP_FROM:-Architect Prep <dev@local>}"
+    ports:
+      - "8080:8080"
+    volumes:
+      - dbdata:/data
+    depends_on:
+      - mailpit
+
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: "1"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "1"
+    ports:
+      - "8025:8025"
+
+volumes:
+  dbdata:

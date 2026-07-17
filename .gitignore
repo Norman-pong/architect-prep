@@ -1,9 +1,16 @@
-# Go
-server/data/
+# Go build outputs and runtime artifacts
 server/architect-prep
+server/seed
 server/tmp/
 server/.env
-tmp/  # Sprint 3.5 per-chapter agent staging
+
+# SQLite runtime database (bank.json source data is tracked)
+server/data/*.db
+server/data/*.db-shm
+server/data/*.db-wal
+
+# Per-chapter agent staging
+tmp/
 
 # Frontend
 web/node_modules/
