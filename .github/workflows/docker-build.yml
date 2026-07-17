@@ -28,7 +28,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.archprep_deploy }}
 
       - name: Extract metadata
         id: meta
@@ -53,7 +53,7 @@ jobs:
 
       - name: Make GHCR package public
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.archprep_deploy }}
         run: |
           # GHCR packages default to private on first creation; without public
           # visibility, anonymous `docker pull` for end users fails.
@@ -61,13 +61,25 @@ jobs:
           owner="${{ github.repository_owner }}"
           pkg="${{ env.IMAGE_NAME }}"
           echo "Setting ghcr.io/${owner}/${pkg} visibility to public..."
-          gh api \
-            --method PATCH \
-            -H "Accept: application/vnd.github+json" \
-            "/user/packages/container/${pkg}" \
-            -f visibility=public
-          # If the PATCH above failed, this step exits non-zero and the
-          # subsequent smoke test will surface the real cause (private pull denied).
+          ok=""
+          for i in 1 2 3 4 5; do
+            if gh api \
+              --method PATCH \
+              -H "Accept: application/vnd.github+json" \
+              "/user/packages/container/${pkg}" \
+              -f visibility=public; then
+              ok=1
+              break
+            fi
+            echo "Attempt ${i}/5 failed (package index may still be propagating); sleeping 15s..."
+            sleep 15
+          done
+          if [ -z "${ok}" ]; then
+            echo "::error::PATCH /user/packages/container/${pkg} returned non-2xx after 5 attempts."
+            echo "Likely cause: GITHUB_TOKEN cannot see user-scoped packages (needs a PAT with write:packages)."
+            echo "Diagnose: gh api /user/packages?package_type=container | jq '.[].name'"
+            exit 1
+          fi
 
       - name: Smoke-test anonymous pull
         env:
