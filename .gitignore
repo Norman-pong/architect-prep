@@ -37,3 +37,6 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+
+# SDD runtime cache (review artifacts, not source)
+.sdd/
