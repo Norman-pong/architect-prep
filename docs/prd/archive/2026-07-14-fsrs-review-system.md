@@ -1,10 +1,15 @@
 # FSRS 遗忘曲线复习系统 PRD
 
-> 状态：活跃 | 创建日期：2026-07-14
+> 状态：已归档 | 创建日期：2026-07-14 | 归档日期：2026-07-20 | 归档原因：已完成
 >
-> 对应 Spec：[系统架构师备考平台 Spec](../spec/2026-07-13-architect-prep.md)
+> 对应 Spec：[系统架构师备考平台 Spec](../../spec/2026-07-13-architect-prep.md)
+> 对应阶段：[Phase 3：FSRS 遗忘曲线复习系统](../../phase/archive/2026-07-14-fsrs-review-system.md)
 >
-> 前序 PRD：[备考平台 PRD（已归档）](prd/archive/2026-07-13-architect-prep-platform.md)
+> 前序 PRD：[备考平台 PRD（已归档）](2026-07-13-architect-prep-platform.md)
+
+## 0. 目标声明
+
+为系统架构师备考平台引入 FSRS6 间隔重复调度算法,构建错题与知识卡片两条遗忘曲线复习轨道,实现"到期复习"的主动回忆机制。MVP 目标:40 张经教材交叉校验的知识卡片 + 错题本 FSRS 改造 + 今日复习页面;全量目标:300+ 知识点卡片入库。
 
 ## 1. 背景与目标
 
@@ -32,18 +37,18 @@
 
 ### 1.4 MVP 范围
 
-| 范围 | 说明 |
-| --- | --- |
+| 范围     | 说明                                                               |
+| -------- | ------------------------------------------------------------------ |
 | MVP 包含 | FSRS 引擎 + 统一调度表 + 错题本改造 + 40 张知识卡片 + 今日复习页面 |
-| 后续补全 | 全量知识卡片（300+ 知识点细化提炼）|
-| 不做 | FSRS 参数个性化优化（先用默认参数，积累数据后评估）|
+| 后续补全 | 全量知识卡片（300+ 知识点细化提炼）                                |
+| 不做     | FSRS 参数个性化优化（先用默认参数，积累数据后评估）                |
 
 ## 2. 用户与场景
 
 ### 2.1 目标用户
 
-| 用户角色 | 描述 | 核心诉求 |
-| --- | --- | --- |
+| 用户角色 | 描述                   | 核心诉求                      |
+| -------- | ---------------------- | ----------------------------- |
 | 备考考生 | 已使用平台刷题的工程师 | 高效复习错题 + 主动回忆知识点 |
 
 ### 2.2 使用场景
@@ -56,19 +61,19 @@
 
 ### 3.1 功能清单
 
-| 功能模块 | 功能点 | 优先级 | 说明 |
-| --- | --- | --- | --- |
-| FSRS 引擎 | 调度器集成 | P0 | 集成 imxw/go-fsrs (FSRS6) |
-| FSRS 引擎 | 统一调度表 | P0 | review_items 表，错题和知识卡片共用 |
-| 错题复习 | 错题本 FSRS 改造 | P0 | 答对更新参数，不删除 |
-| 错题复习 | 错题评分 | P0 | 答对映射 Good，答错映射 Again |
-| 知识卡片 | 卡片数据表 | P0 | knowledge_cards 表 |
-| 知识卡片 | 40 张 MVP 卡片 | P0 | 每章 2 张，教材交叉校验 |
-| 知识卡片 | 今日复习页面 | P0 | 卡片翻面 + 4 级评分 |
-| 复习 API | 到期列表 | P0 | GET /api/v1/review/due |
-| 复习 API | 提交评分 | P0 | POST /api/v1/review/grade |
-| 知识卡片 | 全量卡片补全 | P2 | 后续逐步补全 300+ 知识点 |
-| FSRS 优化 | 参数个性化 | P2 | 积累数据后按用户优化参数 |
+| 功能模块  | 功能点           | 优先级 | 说明                                |
+| --------- | ---------------- | ------ | ----------------------------------- |
+| FSRS 引擎 | 调度器集成       | P0     | 集成 imxw/go-fsrs (FSRS6)           |
+| FSRS 引擎 | 统一调度表       | P0     | review_items 表，错题和知识卡片共用 |
+| 错题复习  | 错题本 FSRS 改造 | P0     | 答对更新参数，不删除                |
+| 错题复习  | 错题评分         | P0     | 答对映射 Good，答错映射 Again       |
+| 知识卡片  | 卡片数据表       | P0     | knowledge_cards 表                  |
+| 知识卡片  | 40 张 MVP 卡片   | P0     | 每章 2 张，教材交叉校验             |
+| 知识卡片  | 今日复习页面     | P0     | 卡片翻面 + 4 级评分                 |
+| 复习 API  | 到期列表         | P0     | GET /api/v1/review/due              |
+| 复习 API  | 提交评分         | P0     | POST /api/v1/review/grade           |
+| 知识卡片  | 全量卡片补全     | P2     | 后续逐步补全 300+ 知识点            |
+| FSRS 优化 | 参数个性化       | P2     | 积累数据后按用户优化参数            |
 
 ### 3.2 详细功能描述
 
@@ -116,11 +121,11 @@ review_items
 
 **state 枚举映射**：
 
-| PRD state | go-fsrs State 枚举 | 值 | 说明 |
-| --- | --- | --- | --- |
-| - | StateLearning | 1 | 新卡片/学习中（go-fsrs 无 New 状态，新建卡片默认 Learning） |
-| - | StateReview | 2 | 复习中 |
-| - | StateRelearning | 3 | 重学习中（遗忘后重新学习） |
+| PRD state | go-fsrs State 枚举 | 值  | 说明                                                        |
+| --------- | ------------------ | --- | ----------------------------------------------------------- |
+| -         | StateLearning      | 1   | 新卡片/学习中（go-fsrs 无 New 状态，新建卡片默认 Learning） |
+| -         | StateReview        | 2   | 复习中                                                      |
+| -         | StateRelearning    | 3   | 重学习中（遗忘后重新学习）                                  |
 
 存储使用 int 类型，直接存 go-fsrs 枚举值。迁移已有错题时 state=1（StateLearning）。
 
@@ -157,10 +162,10 @@ graph TD
 
 **卡片形态**：Q&A 正反面（方案 B）
 
-| 字段 | 说明 |
-| --- | --- |
-| front | 问题面（Q），如"IEEE 1471-2000 标准对系统架构的定义是什么？" |
-| back | 答案面（A），支持 Markdown，如"架构是体现在组件中的一个系统的基本组织..." |
+| 字段  | 说明                                                                      |
+| ----- | ------------------------------------------------------------------------- |
+| front | 问题面（Q），如"IEEE 1471-2000 标准对系统架构的定义是什么？"              |
+| back  | 答案面（A），支持 Markdown，如"架构是体现在组件中的一个系统的基本组织..." |
 
 **卡片来源**：agent 手动生成，markdown 内容与教材原文交叉校验。
 
@@ -207,6 +212,7 @@ graph LR
 **列表排序**：按 FSRS `due` 升序（到期的排前面）
 
 **展示信息**：每道错题显示：
+
 - 题目内容 + 选项
 - 下次复习时间（如"3 天后" / "今日到期"）
 - 记忆状态标签（新/学习中/复习中/重学习中）
@@ -215,12 +221,12 @@ graph LR
 
 ## 4. 非功能需求
 
-| 维度 | 需求 | 备注 |
-| --- | --- | --- |
-| 性能 | 复习列表 API <200ms | SQLite 索引优化 |
-| 兼容 | 现有错题数据迁移 | 已有 wrong_questions 记录补建 review_items |
-| 部署 | imxw/go-fsrs 纯 Go 零依赖 | 不引入 CGO |
-| 前端 | 复习页面移动端适配 | 参考移动端学习体验设计 |
+| 维度 | 需求                      | 备注                                       |
+| ---- | ------------------------- | ------------------------------------------ |
+| 性能 | 复习列表 API <200ms       | SQLite 索引优化                            |
+| 兼容 | 现有错题数据迁移          | 已有 wrong_questions 记录补建 review_items |
+| 部署 | imxw/go-fsrs 纯 Go 零依赖 | 不引入 CGO                                 |
+| 前端 | 复习页面移动端适配        | 参考移动端学习体验设计                     |
 
 ## 5. 数据需求
 
@@ -267,17 +273,17 @@ erDiagram
 
 已有 `wrong_questions` 记录需补建 `review_items`：
 
-| 字段 | 值 |
-| --- | --- |
-| item_type | `'wrong_question'` |
-| item_id | wrong_questions.id |
-| user_id | wrong_questions.user_id |
-| state | 1（StateLearning） |
-| due | now() |
-| stability | NULL |
-| difficulty | NULL |
-| reps | 0 |
-| lapses | 0 |
+| 字段       | 值                      |
+| ---------- | ----------------------- |
+| item_type  | `'wrong_question'`      |
+| item_id    | wrong_questions.id      |
+| user_id    | wrong_questions.user_id |
+| state      | 1（StateLearning）      |
+| due        | now()                   |
+| stability  | NULL                    |
+| difficulty | NULL                    |
+| reps       | 0                       |
+| lapses     | 0                       |
 
 **迁移逻辑**：独立于 `auto_init.go` 的 seed 流程。在服务启动时执行：
 
@@ -301,12 +307,12 @@ WHERE NOT EXISTS (
 
 ### 6.1 页面结构变更
 
-| 页面 | 变更 |
-| --- | --- |
-| 侧边栏 | 新增"今日复习"导航项 |
-| 今日复习 | 新页面：知识卡片翻面 + 4 级评分 |
-| 错题本 | 改造：按 due 排序 + 记忆状态标签 + 下次复习时间 |
-| 学习统计 | 扩展：复习统计（今日复习数/累计复习数/记忆稳定性趋势）|
+| 页面     | 变更                                                   |
+| -------- | ------------------------------------------------------ |
+| 侧边栏   | 新增"今日复习"导航项                                   |
+| 今日复习 | 新页面：知识卡片翻面 + 4 级评分                        |
+| 错题本   | 改造：按 due 排序 + 记忆状态标签 + 下次复习时间        |
+| 学习统计 | 扩展：复习统计（今日复习数/累计复习数/记忆稳定性趋势） |
 
 ### 6.2 今日复习页面交互
 
@@ -325,32 +331,32 @@ WHERE NOT EXISTS (
 
 ### 7.1 新增后端模块
 
-| 模块 | 职责 | 位置 |
-| --- | --- | --- |
-| review | FSRS 调度 + 复习 API | server/internal/review/ |
-| review/model.go | FSRS card / review log 模型 | |
-| review/repository.go | review_items CRUD + due 查询 | |
-| review/service.go | FSRS 调度逻辑 + 评分处理 | |
-| review/handler.go | HTTP handler | |
+| 模块                 | 职责                         | 位置                    |
+| -------------------- | ---------------------------- | ----------------------- |
+| review               | FSRS 调度 + 复习 API         | server/internal/review/ |
+| review/model.go      | FSRS card / review log 模型  |                         |
+| review/repository.go | review_items CRUD + due 查询 |                         |
+| review/service.go    | FSRS 调度逻辑 + 评分处理     |                         |
+| review/handler.go    | HTTP handler                 |                         |
 
 ### 7.2 新增 API
 
 > 所有 API 遵循现有统一响应格式 `{ code: 0, message: "success", data: {} }`，需 JWT 认证。
 
-| 接口 | 方法 | 路径 | 请求/查询参数 | 响应 data |
-| --- | --- | --- | --- | --- |
-| 到期复习列表 | GET | /api/v1/review/due | `type`（wrong_question/knowledge_card）、`page`、`page_size` | PaginatedResponse，按 due ASC 排序 |
-| 提交评分 | POST | /api/v1/review/grade | `{ item_type, item_id, rating }` | `{ due, state, stability, difficulty }` |
-| 复习统计 | GET | /api/v1/review/stats | 无 | `{ due_count, reviewed_today, total_items }` |
+| 接口         | 方法 | 路径                 | 请求/查询参数                                                | 响应 data                                    |
+| ------------ | ---- | -------------------- | ------------------------------------------------------------ | -------------------------------------------- |
+| 到期复习列表 | GET  | /api/v1/review/due   | `type`（wrong_question/knowledge_card）、`page`、`page_size` | PaginatedResponse，按 due ASC 排序           |
+| 提交评分     | POST | /api/v1/review/grade | `{ item_type, item_id, rating }`                             | `{ due, state, stability, difficulty }`      |
+| 复习统计     | GET  | /api/v1/review/stats | 无                                                           | `{ due_count, reviewed_today, total_items }` |
 
 **rating 字段格式**：int 类型，直接使用 go-fsrs Rating 枚举值。
 
-| 值 | 枚举 | 错题映射 | 卡片使用 |
-| --- | --- | --- | --- |
-| 1 | RatingAgain | 答错 | Again |
-| 2 | RatingHard | - | Hard |
-| 3 | RatingGood | 答对 | Good |
-| 4 | RatingEasy | - | Easy |
+| 值  | 枚举        | 错题映射 | 卡片使用 |
+| --- | ----------- | -------- | -------- |
+| 1   | RatingAgain | 答错     | Again    |
+| 2   | RatingHard  | -        | Hard     |
+| 3   | RatingGood  | 答对     | Good     |
+| 4   | RatingEasy  | -        | Easy     |
 
 > 错题评分只有 2 级（1=Again, 3=Good），知识卡片使用全部 4 级。
 
@@ -377,26 +383,26 @@ sequenceDiagram
 
 ### 7.4 依赖变更
 
-| 依赖 | 版本 | 用途 |
-| --- | --- | --- |
+| 依赖                    | 版本   | 用途           |
+| ----------------------- | ------ | -------------- |
 | github.com/imxw/go-fsrs | latest | FSRS6 调度算法 |
 
 ### 7.5 技术决策记录
 
-| 决策项 | 决策内容 | 原因 |
-| --- | --- | --- |
-| 间隔重复算法 | FSRS6（非 SM-2） | SM-2 已过时，FSRS6 是 2025-2026 主流替代 |
-| Go 库 | imxw/go-fsrs（非官方 go-fsrs/v4） | FSRS6 最新，零依赖，官方仓库停留在 FSRS5 rc1 |
-| 调度表设计 | 统一 review_items 表（方案 A） | FSRS 逻辑只写一次，item_type 区分轨道 |
-| 知识卡片形态 | Q&A 正反面（方案 B） | 记忆效果优于知识点原文搬运 |
-| 卡片来源 | agent 手动生成 + 教材交叉校验 | 保证准确性，不自动提炼 |
-| FSRS 参数 | 默认参数，不做用户级优化 | MVP 先验证流程，积累数据后再优化 |
-| 两条轨道 FSRS 参数 | 共享一套默认参数 | 前期不分开调优 |
-| 错题评分 | 2 级（Again/Good）后端映射 | 错题重做是对/错二元结果 |
-| 知识卡片评分 | 4 级（Again/Hard/Good/Easy） | 主动回忆需要更细粒度反馈 |
-| state 存储 | int 类型，直接存 go-fsrs 枚举值（1/2/3） | 避免字符串映射开销，go-fsrs 无 New 状态，新建卡片默认 Learning(1) |
-| rating 格式 | int 类型，直接使用 go-fsrs Rating 枚举值（1/2/3/4） | 前后端统一，避免字符串大小写不一致问题 |
-| 迁移策略 | 独立于 auto_init.go，每次启动幂等执行 | auto_init.go 仅空库触发 seed，迁移需在已有库上运行 |
+| 决策项             | 决策内容                                            | 原因                                                              |
+| ------------------ | --------------------------------------------------- | ----------------------------------------------------------------- |
+| 间隔重复算法       | FSRS6（非 SM-2）                                    | SM-2 已过时，FSRS6 是 2025-2026 主流替代                          |
+| Go 库              | imxw/go-fsrs（非官方 go-fsrs/v4）                   | FSRS6 最新，零依赖，官方仓库停留在 FSRS5 rc1                      |
+| 调度表设计         | 统一 review_items 表（方案 A）                      | FSRS 逻辑只写一次，item_type 区分轨道                             |
+| 知识卡片形态       | Q&A 正反面（方案 B）                                | 记忆效果优于知识点原文搬运                                        |
+| 卡片来源           | agent 手动生成 + 教材交叉校验                       | 保证准确性，不自动提炼                                            |
+| FSRS 参数          | 默认参数，不做用户级优化                            | MVP 先验证流程，积累数据后再优化                                  |
+| 两条轨道 FSRS 参数 | 共享一套默认参数                                    | 前期不分开调优                                                    |
+| 错题评分           | 2 级（Again/Good）后端映射                          | 错题重做是对/错二元结果                                           |
+| 知识卡片评分       | 4 级（Again/Hard/Good/Easy）                        | 主动回忆需要更细粒度反馈                                          |
+| state 存储         | int 类型，直接存 go-fsrs 枚举值（1/2/3）            | 避免字符串映射开销，go-fsrs 无 New 状态，新建卡片默认 Learning(1) |
+| rating 格式        | int 类型，直接使用 go-fsrs Rating 枚举值（1/2/3/4） | 前后端统一，避免字符串大小写不一致问题                            |
+| 迁移策略           | 独立于 auto_init.go，每次启动幂等执行               | auto_init.go 仅空库触发 seed，迁移需在已有库上运行                |
 
 ## 8. 验收标准
 
@@ -431,12 +437,12 @@ sequenceDiagram
 
 ### 9.1 已知风险
 
-| 风险 | 影响 | 概率 | 应对 |
-| --- | --- | --- | --- |
-| imxw/go-fsrs 0 star 社区风险 | 维护中断、无社区验证 | 中 | FSRS6 算法已稳定，纯 Go 可 fork，94% 测试覆盖 |
-| 全量卡片工作量大 | 300+ 知识点 × 校验 | 高 | MVP 先 40 张验证流程，后续逐步补全 |
-| FSRS 默认参数不适用 | 调度不够精准 | 中 | 积累数据后启用参数优化 |
-| 错题迁移不完整 | 已有错题无 FSRS 状态 | 低 | 每次启动幂等执行 INSERT OR IGNORE 补建 |
+| 风险                         | 影响                 | 概率 | 应对                                          |
+| ---------------------------- | -------------------- | ---- | --------------------------------------------- |
+| imxw/go-fsrs 0 star 社区风险 | 维护中断、无社区验证 | 中   | FSRS6 算法已稳定，纯 Go 可 fork，94% 测试覆盖 |
+| 全量卡片工作量大             | 300+ 知识点 × 校验   | 高   | MVP 先 40 张验证流程，后续逐步补全            |
+| FSRS 默认参数不适用          | 调度不够精准         | 中   | 积累数据后启用参数优化                        |
+| 错题迁移不完整               | 已有错题无 FSRS 状态 | 低   | 每次启动幂等执行 INSERT OR IGNORE 补建        |
 
 ### 9.2 约束条件
 
@@ -451,18 +457,18 @@ sequenceDiagram
 
 - [FSRS 算法 Wiki](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm)
 - [imxw/go-fsrs](https://github.com/imxw/go-fsrs)
-- [架构总览](../architecture/overview.md)
-- [系统架构设计师教程第2版](../reference/)
+- [架构总览](../../architecture/overview.md)
+- [系统架构设计师教程第2版](../../reference/)
 
 ### 10.2 术语表
 
-| 术语 | 说明 |
-| --- | --- |
-| FSRS | Free Spaced Repetition Scheduler，开源间隔重复调度器 |
-| SM-2 | SuperMemo 2，1987 年的间隔重复算法，已被 FSRS 替代 |
-| Stability (S) | 记忆稳定性，表示记忆衰减速度，值越大遗忘越慢 |
-| Difficulty (D) | 难度，取值 1-10，反映卡片难度 |
+| 术语               | 说明                                                   |
+| ------------------ | ------------------------------------------------------ |
+| FSRS               | Free Spaced Repetition Scheduler，开源间隔重复调度器   |
+| SM-2               | SuperMemo 2，1987 年的间隔重复算法，已被 FSRS 替代     |
+| Stability (S)      | 记忆稳定性，表示记忆衰减速度，值越大遗忘越慢           |
+| Difficulty (D)     | 难度，取值 1-10，反映卡片难度                          |
 | Retrievability (R) | 可提取度，当前时刻能回忆起的概率，$R = (1 + t/S)^{-d}$ |
-| due | 下次到期复习时间 |
-| rating | 用户评分：Again / Hard / Good / Easy |
-| card | FSRS 调度单元，对应一道错题或一张知识卡片 |
+| due                | 下次到期复习时间                                       |
+| rating             | 用户评分：Again / Hard / Good / Easy                   |
+| card               | FSRS 调度单元，对应一道错题或一张知识卡片              |

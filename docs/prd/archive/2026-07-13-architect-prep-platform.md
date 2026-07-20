@@ -9,7 +9,7 @@
 >
 > 不要再直接修改本文件--避免污染历史快照。
 >
-> 对应阶段：[项目骨架搭建](../../phase/2026-07-13-foundation-skeleton.md)
+> 对应阶段：[项目骨架搭建](../../phase/archive/2026-07-13-foundation-skeleton.md)
 
 ## 1. 背景与目标
 

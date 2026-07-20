@@ -2,7 +2,7 @@
 
 > 状态：已完成
 > 修改记录：执行 `lore log docs/phase/2026-07-14-knowledge-and-practice.md`
-> 对应 PRD：[系统架构师备考平台 PRD](../prd/archive/2026-07-13-architect-prep-platform.md)（已归档）
+> 对应 PRD：[系统架构师备考平台 PRD](../../prd/archive/2026-07-13-architect-prep-platform.md)（已归档）
 
 ## 1. 阶段目标
 
@@ -44,12 +44,12 @@ Phase 1 搭建了空壳骨架（前后端+Docker），但数据库无内容、�
 
 ### Sprint 2.2: 题库导入管道
 
-| 任务 ID | 任务名称                  | 说明                                                          | 状态                  |
-| ------- | ------------------------- | ------------------------------------------------------------- | --------------------- |
-| T201    | Markdown 题库解析器       | Go 脚本解析 wujiaming88/awesome-ruankao Markdown 题库 -> JSON | ✅（268 题有效解析）  |
-| T202    | 题目批量导入              | 通过 `cmd/seed -bank data/bank.json` 直接导入 SQLite（唯一真源 bank.json）| ✅（替代 admin API）  |
-| T203    | 导入 awesome-ruankao 真题 | 解析 2024-2025 年真题 Markdown -> 入库                        | ✅（4 套真题 268 题） |
-| T204    | 导入 PeterGuy326 自主命题 | 解析 320+ 题 Markdown -> 入库                                 | ⏳ 推迟到下一阶段     |
+| 任务 ID | 任务名称                  | 说明                                                                       | 状态                  |
+| ------- | ------------------------- | -------------------------------------------------------------------------- | --------------------- |
+| T201    | Markdown 题库解析器       | Go 脚本解析 wujiaming88/awesome-ruankao Markdown 题库 -> JSON              | ✅（268 题有效解析）  |
+| T202    | 题目批量导入              | 通过 `cmd/seed -bank data/bank.json` 直接导入 SQLite（唯一真源 bank.json） | ✅（替代 admin API）  |
+| T203    | 导入 awesome-ruankao 真题 | 解析 2024-2025 年真题 Markdown -> 入库                                     | ✅（4 套真题 268 题） |
+| T204    | 导入 PeterGuy326 自主命题 | 解析 320+ 题 Markdown -> 入库                                              | ⏳ 推迟到下一阶段     |
 
 ### Sprint 2.3: 刷题核心功能
 
