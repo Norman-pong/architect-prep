@@ -49,8 +49,6 @@ function DashboardPage() {
 
   const dueCount = reviewStats?.due_count ?? 0;
 
-  const reviewedToday = reviewStats?.reviewed_today ?? 0;
-
   // Push page-level config into the unified Header (rendered by the layout).
   // Subtitle carries the quick status snapshot so users see it without scrolling
   // past three large stat cards on mobile.
@@ -59,19 +57,20 @@ function DashboardPage() {
 
   return (
     <div className="space-y-4">
-      {/* 今日复习 — 置顶 CTA */}
-      <Card className="overflow-hidden border-primary/30 bg-gradient-to-r from-primary/8 via-primary/5 to-transparent">
-        <CardContent className="flex items-center justify-between gap-4 p-5">
+      {/* 今日复习 — 置顶 CTA。视觉锚点：用渐变背景 + 左侧 accent bar 强化
+          "待办"信号。文案只保留紧迫度信息（"N 张待复习"），与 Header 副标
+          题的快照状态（"今日到期 N 张 · 已复习 M"）解耦，避免重复。 */}
+      <Card className="relative overflow-hidden border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent">
+        <div className="absolute inset-y-0 left-0 w-1 bg-primary" aria-hidden />
+        <CardContent className="flex items-center justify-between gap-4 p-5 pl-6">
           <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
               <ReviewIcon className="size-6" />
             </div>
-            <div>
+            <div className="min-w-0">
               <h2 className="text-lg font-semibold text-foreground">今日复习</h2>
               <p className="mt-0.5 text-sm text-muted-foreground">
-                {dueCount > 0
-                  ? `今日到期 ${dueCount} 张卡片 · 已复习 ${reviewedToday}`
-                  : '今天没有需要复习的卡片'}
+                {dueCount > 0 ? `还有 ${dueCount} 张卡片待复习` : '今天没有需要复习的卡片'}
               </p>
             </div>
           </div>
@@ -85,53 +84,65 @@ function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* 统计：3 卡 */}
+      {/* 统计：3 卡。统一 padding 让卡片更舒展（之前 p-6 + 内容少显得空）。
+          进度条加粗到 h-2.5，提升视觉重量。 */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* 学习进度 */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">学习进度</CardTitle>
             <ProgressIcon className="size-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{progressLoading ? '--' : `${coverage}%`}</div>
-            <div className="mt-2 h-2 w-full rounded-full bg-muted">
+          <CardContent className="space-y-3">
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold tabular-nums">
+                {progressLoading ? '--' : coverage}
+              </span>
+              <span className="text-sm font-medium text-muted-foreground">%</span>
+            </div>
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
               <div
-                className="h-full rounded-full bg-primary transition-all"
+                className="h-full rounded-full bg-primary transition-all duration-500"
                 style={{ width: `${progressLoading ? 0 : coverage}%` }}
               />
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {progressLoading ? '--' : `${masteredPoints} / ${totalPoints} 知识点`}
+            <p className="text-xs text-muted-foreground">
+              {progressLoading ? '--' : `已掌握 ${masteredPoints} / ${totalPoints} 知识点`}
             </p>
           </CardContent>
         </Card>
 
         {/* 知识体系 */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">知识体系</CardTitle>
             <BookIcon className="size-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {chaptersLoading ? '--' : (chapters?.length ?? 0)}
+          <CardContent className="space-y-3">
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold tabular-nums">
+                {chaptersLoading ? '--' : (chapters?.length ?? 0)}
+              </span>
+              <span className="text-sm font-medium text-muted-foreground">章</span>
             </div>
-            <p className="text-xs text-muted-foreground">教材章节</p>
+            <p className="text-xs text-muted-foreground">覆盖 20 章教材体系</p>
           </CardContent>
         </Card>
 
         {/* 刷题情况 */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">刷题情况</CardTitle>
             <QuizIcon className="size-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="flex items-baseline gap-3">
-              <div className="text-2xl font-bold">{statsLoading ? '--' : totalQuestions}</div>
+          <CardContent className="space-y-3">
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold tabular-nums">
+                {statsLoading ? '--' : totalQuestions}
+              </span>
+              <span className="text-sm font-medium text-muted-foreground">题</span>
               {accuracy !== undefined && hasPracticeData && (
-                <div className="text-sm text-muted-foreground">正确率 {accuracy}%</div>
+                <span className="ml-auto text-sm font-medium text-success">正确率 {accuracy}%</span>
               )}
             </div>
             <p className="text-xs text-muted-foreground">已练习题目数</p>

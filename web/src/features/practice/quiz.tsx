@@ -52,9 +52,11 @@ export function PracticePage() {
   const currentQuestion = questions[currentIndex];
   const isMultiple = currentQuestion?.question_type === 'multiple';
 
-  // Page identity lives in the layout Header. The progress badge is a dynamic
-  // piece of state — we render it both into the Header's action slot (desktop)
-  // and the PageHero band (mobile, below the header). Same JSX, two positions.
+  // Page identity lives in the layout Header. The progress badge is rendered
+  // into <PageHero> only — keeps it visible on mobile (where the hero band
+  // shows) and avoids the previous "rendered twice" bug. The desktop path
+  // shows the same `currentIndex / total` inline next to the question title
+  // in <CardHeader> so the count is always visible regardless of viewport.
   const progressBadge = (
     <Badge variant="info" className="px-3 py-1 text-sm">
       {currentIndex + 1} / {questions.length}
@@ -63,7 +65,6 @@ export function PracticePage() {
   useSetHeader({
     title: '刷题练习',
     subtitle: '单选/多选,每题 1 个正确答案',
-    actions: progressBadge,
   });
 
   function toggleOption(key: string) {
@@ -191,6 +192,10 @@ export function PracticePage() {
               </svg>
               难度 {currentQuestion.difficulty}
             </Badge>
+            {/* Progress — visible on desktop where PageHero is hidden. On mobile
+                the same `progressBadge` lives in <PageHero> above this card so
+                it doesn't double-render. */}
+            <span className="ml-auto hidden md:inline-flex">{progressBadge}</span>
           </div>
           <CardTitle className="mt-2 text-base leading-relaxed">
             {currentQuestion.content}

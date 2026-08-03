@@ -28,7 +28,10 @@ function AuthenticatedLayout() {
       <div className="flex flex-1 flex-col overflow-hidden">
         <HeaderContextProvider openSidebar={openSidebar}>
           <main className="flex-1 overflow-auto bg-background md:bg-muted/30">
-            <div className="mx-auto max-w-5xl md:p-8">
+            {/* Mobile: pt-3 (12px) keeps content off the sticky header without
+                feeling crowded. Desktop: p-8 gives breathing room around the
+                centered card. */}
+            <div className="mx-auto max-w-5xl px-3 pt-3 md:p-8">
               {/* Mobile: no card wrapper — content uses the page padding directly. */}
               {/* Desktop: single white card with rounded corners + shadow (newapi style). */}
               <div className="md:rounded-xl md:border md:border-border md:bg-card md:p-6 md:shadow-sm">

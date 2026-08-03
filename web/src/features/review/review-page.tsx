@@ -43,9 +43,12 @@ export function ReviewPage() {
     setIndex(0);
   }, [queue?.items]);
 
-  // Page identity lives in the layout Header. The migrate button is the only
-  // dynamic action — render it into both the Header slot (desktop) and the
-  // PageHero band (mobile).
+  // Page identity lives in the layout Header. The migrate button is rendered
+  // into <PageHero> only — that way Header.actions stays empty and the action
+  // doesn't double-render on mobile (where PageHero is the only place it lives).
+  // The desktop path: the same button is placed at the bottom of the page
+  // (`MigrateRow` below) so it stays reachable without competing for header
+  // real estate.
   const migrateButton = (
     <Button
       variant="outline"
@@ -59,7 +62,6 @@ export function ReviewPage() {
   useSetHeader({
     title: t('nav.review'),
     subtitle: '基于 FSRS 间隔重复算法的每日复习',
-    actions: migrateButton,
   });
 
   if (statsLoading && queueLoading) {
@@ -108,6 +110,10 @@ export function ReviewPage() {
           onGrade={handleGrade}
         />
       )}
+
+      {/* Desktop-only: migrate is reachable from the mobile <PageHero> band,
+          so on ≥md we render the same action at the page bottom to keep parity. */}
+      <div className="hidden justify-end md:flex">{migrateButton}</div>
     </div>
   );
 }

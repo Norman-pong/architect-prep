@@ -143,45 +143,41 @@ export function PointReader({
       {/* Chapter exam questions link */}
       <ChapterExamLink chapterId={chapter.id} chapterNo={chapter.chapter_no} />
 
-      {/* Bottom sticky toolbar — h-16 + safe-area inset so labels never get clipped on small phones */}
+      {/* Bottom sticky toolbar — safe-area inset so labels never get clipped on
+          small phones. Layout: icon-only nav buttons (with title for context)
+          on the sides, full primary action in the middle. Previously all three
+          buttons fought for equal width, which truncated the prev/next point
+          titles and made the disabled state look indistinguishable. */}
       <div className="sticky bottom-0 z-30 flex min-h-[68px] items-center gap-2 border-t border-border bg-card px-2 pb-[env(safe-area-inset-bottom)] pt-1.5">
         <button
           type="button"
           disabled={!prevPoint}
           onClick={() => prevPoint && prevChapter && onNavigate(prevChapter.id, prevPoint.id)}
+          title={prevPoint ? `上一节: ${prevPoint.title}` : '已是第一个'}
+          aria-label={prevPoint ? `上一节: ${prevPoint.title}` : '已是第一个'}
           className={cn(
-            'flex min-h-[44px] flex-1 items-center justify-center gap-1 whitespace-nowrap rounded-md px-2 text-sm font-medium transition-colors',
+            'flex h-11 w-11 shrink-0 items-center justify-center rounded-md transition-colors',
             prevPoint
               ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-              : 'bg-muted text-muted-foreground opacity-50',
+              : 'bg-muted text-muted-foreground opacity-40',
           )}
         >
-          <ChevronLeft className="size-4" />
-          <span className="truncate">{prevPoint ? prevPoint.title : '已是第一个'}</span>
+          <ChevronLeft className="size-5" />
         </button>
 
-        {/* Master toggle */}
+        {/* Master toggle — primary action, takes the remaining space */}
         <button
           type="button"
           onClick={() => onToggleMastered(point.id, !isMastered)}
           className={cn(
-            'flex min-h-[44px] flex-1 items-center justify-center gap-1 whitespace-nowrap rounded-md px-2 text-sm font-medium transition-colors',
+            'flex h-11 min-h-[44px] flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 text-sm font-medium transition-colors',
             isMastered
               ? 'bg-success text-success-foreground'
               : 'bg-primary text-primary-foreground hover:bg-primary-hover',
           )}
         >
-          {isMastered ? (
-            <>
-              <Check className="size-4" />
-              <span>已学</span>
-            </>
-          ) : (
-            <>
-              <Check className="size-4" />
-              <span>标记已学</span>
-            </>
-          )}
+          <Check className="size-4" />
+          <span>{isMastered ? '已学' : '标记已学'}</span>
         </button>
 
         {/* Next */}
@@ -189,15 +185,16 @@ export function PointReader({
           type="button"
           disabled={!nextPoint}
           onClick={() => nextPoint && nextChapter && onNavigate(nextChapter.id, nextPoint.id)}
+          title={nextPoint ? `下一节: ${nextPoint.title}` : '已是最后一个'}
+          aria-label={nextPoint ? `下一节: ${nextPoint.title}` : '已是最后一个'}
           className={cn(
-            'flex min-h-[44px] flex-1 items-center justify-center gap-1 whitespace-nowrap rounded-md px-2 text-sm font-medium transition-colors',
+            'flex h-11 w-11 shrink-0 items-center justify-center rounded-md transition-colors',
             nextPoint
               ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-              : 'bg-muted text-muted-foreground opacity-50',
+              : 'bg-muted text-muted-foreground opacity-40',
           )}
         >
-          <span className="truncate">{nextPoint ? nextPoint.title : '已是最后一个'}</span>
-          <ChevronRight className="size-4" />
+          <ChevronRight className="size-5" />
         </button>
       </div>
     </div>
