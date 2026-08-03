@@ -236,7 +236,13 @@ function KnowledgePage() {
   const isReading = !!currentPointId && !!currentChapterId;
   const showMobileOutline = isMobile && !isReading;
   const showMobileReader = isMobile && isReading;
-  const showDesktop = !isMobile;
+  const showDesktop = !isMobile && !isReading;
+  // B-013 fix: PC 端之前只渲染 DesktopOutline，点击 point 后 URL 变成
+  // ?chapter=X&point=Y 但 main area 没切换（isReading=true 但 PC 没渲染
+  // PointReader 分支），用户体感是"点 article 没反应"。改成 isReading 时
+  // 切换到 PointReader 视图（与 mobile 端同形态），用 navigateBack 返回
+  // DesktopOutline 列表。
+  const showDesktopReader = !isMobile && isReading;
 
   // Sync search query from URL
   useEffect(() => {
@@ -309,6 +315,29 @@ function KnowledgePage() {
             />
           </CardContent>
         </Card>
+      )}
+
+      {/* Desktop: Reader view when a point is selected. The same PointReader
+          component used on mobile gives us the sticky header/footer + chapter
+          progress + cross-chapter prev/next for free. Desktop users tap
+          `navigateBack` (the chevron-back in PointReader) to return to the
+          outline. */}
+      {showDesktopReader && (
+        <PointReader
+          chapter={currentChapter}
+          point={currentPoint}
+          pointStatus={pointStatus}
+          progress={progress}
+          chapters={chapters}
+          pointsMap={pointsMap}
+          isLoading={chaptersLoading}
+          onBack={navigateBack}
+          onNavigate={navigateToPoint}
+          onToggleMastered={handleToggleMastered}
+          onOpenDrawer={() => setDrawerOpen(true)}
+          onOpenSearch={() => setSearchOpen(true)}
+          recordView={handleRecordView}
+        />
       )}
 
       {/* Chapter drawer (mobile) — conditional render keeps [role=dialog]
