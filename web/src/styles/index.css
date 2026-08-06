@@ -203,11 +203,11 @@
   --duration-base: 200ms;
   --duration-slow: 320ms;
 
-  --z-base: 0;
-  --z-sticky: 20;
-  --z-toast: 80;
-  --z-dialog: 90;
-  --z-modal: 100;
+  --z-index-base: 0;
+  --z-index-sticky: 20;
+  --z-index-toast: 80;
+  --z-index-dialog: 90;
+  --z-index-modal: 100;
 
   --animate-fadeIn: fadeIn 320ms var(--ease-out-quart) both;
   --animate-shimmer: shimmer 1500ms linear infinite;
