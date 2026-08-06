@@ -29,7 +29,7 @@ export const DialogBackdrop = React.forwardRef<HTMLDivElement, DialogBackdropPro
     <BaseDialog.Backdrop
       ref={ref}
       className={cn(
-        'fixed inset-0 z-50 bg-foreground/40 backdrop-blur-sm',
+        'fixed inset-0 z-dialog bg-foreground/40 backdrop-blur-sm',
         'transition-opacity data-[state=open]:opacity-100 data-[state=closed]:opacity-0',
         className,
       )}
@@ -48,7 +48,7 @@ export const DialogPopup = React.forwardRef<HTMLDivElement, DialogPopupProps>(
     <BaseDialog.Popup
       ref={ref}
       className={cn(
-        'fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 rounded-lg border border-border bg-card p-6 text-card-foreground shadow-lg',
+        'fixed left-1/2 top-1/2 z-dialog grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 rounded-lg border border-border bg-card p-6 text-card-foreground shadow-lg',
         'transition-all data-[state=open]:opacity-100 data-[state=closed]:opacity-0 data-[state=closed]:translate-y-2',
         className,
       )}

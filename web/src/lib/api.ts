@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from '@/components/ui/toast';
 
 interface PersistedAuth {
   state?: {
@@ -43,13 +44,22 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401
+// Handle 401 (hard redirect) + surface non-401 errors as toast.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('auth-storage');
       window.location.href = '/login';
+      return Promise.reject(error);
+    }
+    // Non-401: surface a generic toast (callers may still add specific toasts).
+    if (
+      error.response &&
+      typeof error.response.status === 'number' &&
+      error.response.status >= 400
+    ) {
+      toast.error('操作失败,请重试');
     }
     return Promise.reject(error);
   },
