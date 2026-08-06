@@ -8,6 +8,7 @@ import { Field, Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { BrandPanel } from './brand-panel';
 import { cn } from '@/lib/utils';
+import { toast } from '@/components/ui/toast';
 
 function MailIcon({ className }: { className?: string }) {
   return (
@@ -87,6 +88,7 @@ export function LoginPage() {
       setCodeSent(true);
     } catch {
       setError('Failed to send code');
+      toast.error('验证码发送失败，请稍后重试');
     } finally {
       setIsSendingCode(false);
     }
@@ -103,6 +105,7 @@ export function LoginPage() {
       void navigate({ to: '/' });
     } catch {
       setError('Invalid code');
+      toast.error('验证码无效或已过期，请检查后重试');
     } finally {
       setIsVerifying(false);
     }
