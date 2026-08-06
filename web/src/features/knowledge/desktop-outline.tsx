@@ -1,7 +1,9 @@
 import { useState, useCallback } from 'react';
+import { ChevronDown, ChevronUp, CheckCircle2, Circle } from 'lucide-react';
+import { EmptyState, EmptyIllustration } from '@/components/empty-state';
+import { KnowledgeOutlineSkeleton } from './knowledge-skeleton';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, ChevronUp, CheckCircle2, Circle } from 'lucide-react';
 import type { Chapter, LearningProgress, KnowledgePoint } from './types';
 import { getChapterProgress, getMasteryLevel, isChapterCompleted } from './hooks';
 
@@ -58,20 +60,16 @@ export function DesktopOutline({
   }, []);
 
   if (isLoading) {
-    return (
-      <div className="space-y-2">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="h-14 w-full animate-pulse rounded-md bg-muted" />
-        ))}
-      </div>
-    );
+    return <KnowledgeOutlineSkeleton variant="desktop" />;
   }
 
   if (!chapters || chapters.length === 0) {
     return (
-      <div className="py-12 text-center">
-        <p className="text-muted-foreground">还没有章节。运行 seed 脚本导入数据。</p>
-      </div>
+      <EmptyState
+        icon={<EmptyIllustration name="empty-questions" />}
+        title="还没有章节"
+        description="运行 seed 脚本导入数据,即可看到章节列表。"
+      />
     );
   }
 
