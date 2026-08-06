@@ -193,6 +193,61 @@
 }
 
 /* ============================================
+ * Motion + Z-index Tokens (PR1 Foundation)
+ * 动效时长 / easing / z-index 分层;与 web/src/lib/motion.ts 同步
+ * ============================================ */
+
+@theme {
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+
+  --z-base: 0;
+  --z-sticky: 20;
+  --z-toast: 80;
+  --z-dialog: 90;
+  --z-modal: 100;
+
+  --animate-fadeIn: fadeIn 320ms var(--ease-out-quart) both;
+  --animate-shimmer: shimmer 1500ms linear infinite;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* 单源 reduced-motion 处理:CSS keyframes 全部塌缩成静态。 */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes fadeIn {
+    from,
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes shimmer {
+    0%,
+    100% {
+      background-position: 0 0;
+    }
+  }
+}
+
+/* ============================================
  * Base Styles
  * ============================================ */
 
