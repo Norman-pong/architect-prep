@@ -4,7 +4,7 @@ import { api } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { EmptyState } from '@/components/empty-state';
+import { EmptyState, EmptyIllustration } from '@/components/empty-state';
 import { cn } from '@/lib/utils';
 import { useSetHeader } from '@/components/layout/header-context';
 import { PageHero } from '@/components/layout/page-hero';
@@ -93,21 +93,7 @@ export function WrongQuestionsPage() {
       <div className="space-y-4">
         <PageHero>{countBadge}</PageHero>
         <EmptyState
-          icon={
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-              <path d="M9 11l3 3L22 4" />
-            </svg>
-          }
+          icon={<EmptyIllustration name="empty-wrong" />}
           title="暂无错题"
           description="继续刷题巩固知识，错题会自动汇总到这里。答对后将从错题本移除。"
           actionLabel="去刷题"
