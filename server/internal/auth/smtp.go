@@ -67,7 +67,7 @@ func allowPlaintext(host string) bool {
 		return v == "1"
 	}
 	h := strings.ToLower(strings.TrimSpace(host))
-	if h == "mailpit" || h == "localhost" || strings.HasSuffix(h, ".local") {
+	if h == "mailpit" || h == "localhost" || h == "127.0.0.1" || h == "::1" || strings.HasSuffix(h, ".local") {
 		return true
 	}
 	return false
