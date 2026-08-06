@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { api } from '@/lib/api';
+import { DURATION, EASE } from '@/lib/motion';
 import { useOverallProgress } from '@/features/learning/queries';
 import { useChapters } from '@/features/knowledge/hooks';
 import { useSetHeader } from '@/components/layout/header-context';
@@ -66,7 +67,13 @@ function DashboardPage() {
       {/* 今日复习 — 置顶 CTA。视觉锚点：用渐变背景 + 左侧 accent bar 强化
           "待办"信号。文案只保留紧迫度信息（"N 张待复习"），与 Header 副标
           题的快照状态（"今日到期 N 张 · 已复习 M"）解耦，避免重复。 */}
-      <Card className="relative overflow-hidden border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent">
+      <Card
+        className="relative overflow-hidden border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent transition-all duration-200 hover:shadow-md"
+        style={{
+          transitionDuration: `${DURATION.base}ms`,
+          transitionTimingFunction: EASE.outQuart,
+        }}
+      >
         <div className="absolute inset-y-0 left-0 w-1 bg-primary" aria-hidden />
         <CardContent className="flex items-center justify-between gap-4 p-5 pl-6">
           <div className="flex items-center gap-4">
@@ -100,7 +107,14 @@ function DashboardPage() {
           进度条加粗到 h-2.5，提升视觉重量。 */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* 学习进度 */}
-        <Card>
+        <Card
+          className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md animate-fadeIn"
+          style={{
+            animationDelay: '0ms',
+            transitionDuration: `${DURATION.base}ms`,
+            transitionTimingFunction: EASE.outQuart,
+          }}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">学习进度</CardTitle>
             <ProgressIcon className="size-4 text-muted-foreground" />
@@ -125,7 +139,14 @@ function DashboardPage() {
         </Card>
 
         {/* 知识体系 */}
-        <Card>
+        <Card
+          className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md animate-fadeIn"
+          style={{
+            animationDelay: '40ms',
+            transitionDuration: `${DURATION.base}ms`,
+            transitionTimingFunction: EASE.outQuart,
+          }}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">知识体系</CardTitle>
             <BookIcon className="size-4 text-muted-foreground" />
@@ -142,7 +163,14 @@ function DashboardPage() {
         </Card>
 
         {/* 刷题情况 */}
-        <Card>
+        <Card
+          className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md animate-fadeIn"
+          style={{
+            animationDelay: '80ms',
+            transitionDuration: `${DURATION.base}ms`,
+            transitionTimingFunction: EASE.outQuart,
+          }}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">刷题情况</CardTitle>
             <QuizIcon className="size-4 text-muted-foreground" />
@@ -165,7 +193,13 @@ function DashboardPage() {
       </div>
 
       {/* 考试信息 */}
-      <Card>
+      <Card
+        className="transition-all duration-200 hover:shadow-md"
+        style={{
+          transitionDuration: `${DURATION.base}ms`,
+          transitionTimingFunction: EASE.outQuart,
+        }}
+      >
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle>考试信息</CardTitle>
           <Link
