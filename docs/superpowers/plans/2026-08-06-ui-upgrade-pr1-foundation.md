@@ -799,9 +799,9 @@ export function AnimatedNumber({
       setDisplay(value);
       return;
     }
-    // Skip if off-screen
+    // Skip if off-screen (getBoundingClientRect is available in all browsers + jsdom)
     const el = elRef.current;
-    if (el && typeof IntersectionObserver !== 'undefined') {
+    if (el) {
       const rect = el.getBoundingClientRect();
       if (rect.bottom < 0 || rect.top > window.innerHeight) {
         setDisplay(value);
