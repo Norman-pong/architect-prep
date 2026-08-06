@@ -201,7 +201,13 @@ export function PointReader({
   );
 }
 
-function ChapterExamLink({ chapterId, chapterNo }: { chapterId: number; chapterNo: number }) {
+function ChapterExamLink({
+  chapterId,
+  chapterNo: _chapterNo,
+}: {
+  chapterId: number;
+  chapterNo: number;
+}) {
   const navigate = useNavigate();
   const { data: count } = useQuery({
     queryKey: ['practice', 'chapter-count', chapterId],
@@ -219,7 +225,7 @@ function ChapterExamLink({ chapterId, chapterNo }: { chapterId: number; chapterN
   return (
     <button
       type="button"
-      onClick={() => void navigate({ to: '/practice', search: { chapter: chapterNo } })}
+      onClick={() => void navigate({ to: '/practice' })}
       className="mx-3 mb-2 flex items-center justify-between rounded-lg border border-border bg-muted/30 px-4 py-3 transition-colors hover:bg-muted/60"
     >
       <div className="flex items-center gap-2">

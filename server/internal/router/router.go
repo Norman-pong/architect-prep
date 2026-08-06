@@ -30,7 +30,11 @@ func Register(cfg *config.Config) *gin.Engine {
 	}
 
 	// Auto-seed if database is empty (first run)
-	seed.AutoSeedIfEmpty(database, "data/bank.json")
+	bankPath := os.Getenv("BANK_PATH")
+	if bankPath == "" {
+		bankPath = "data/bank.json"
+	}
+	seed.AutoSeedIfEmpty(database, bankPath)
 
 	r := gin.New()
 	r.Use(gin.Logger())

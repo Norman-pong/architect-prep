@@ -86,6 +86,45 @@ func (r *Repository) ListQuestions(ctx context.Context, chapterID int, examType 
 	}, nil
 }
 
+// ListRandomQuestions returns up to count random questions, optionally filtered by chapter.
+// Unlike ListQuestions, this does not include answer_keys or explanation.
+func (r *Repository) ListRandomQuestions(ctx context.Context, count, chapterID int) ([]QuestionListItem, error) {
+	whereClause := "WHERE 1=1"
+	args := []interface{}{}
+	if chapterID > 0 {
+		whereClause += " AND chapter_id = ?"
+		args = append(args, chapterID)
+	}
+	args = append(args, count)
+
+	query := fmt.Sprintf(
+		"SELECT id, chapter_id, year, half, exam_type, question_type, content, options, difficulty FROM questions %s ORDER BY RANDOM() LIMIT ?",
+		whereClause,
+	)
+	rows, err := r.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("list random questions: %w", err)
+	}
+	defer rows.Close()
+
+	var items []QuestionListItem
+	for rows.Next() {
+		var q QuestionListItem
+		var opts []byte
+		if err := rows.Scan(&q.ID, &q.ChapterID, &q.Year, &q.Half, &q.ExamType, &q.QuestionType, &q.Content, &opts, &q.Difficulty); err != nil {
+			return nil, fmt.Errorf("scan question: %w", err)
+		}
+		if len(opts) > 0 {
+			q.Options = json.RawMessage(opts)
+		}
+		items = append(items, q)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate questions: %w", err)
+	}
+	return items, nil
+}
+
 // GetQuestion returns a question by id, including answer keys and explanation.
 func (r *Repository) GetQuestion(ctx context.Context, id int) (*Question, error) {
 	query := `SELECT id, chapter_id, year, half, exam_type, question_type, content, options, answer_keys, explanation, source, difficulty FROM questions WHERE id = ?`

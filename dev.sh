@@ -117,6 +117,7 @@ if [ "$USE_MAILPIT" = true ]; then
   PORT="$PORT" \
   ENV_FILE="$ENV_FILE" \
   DEV_ECHO_CODE="$DEV_ECHO" \
+  BANK_PATH="$SERVER_DIR/data/bank.json" \
   SMTP_HOST=127.0.0.1 \
   SMTP_PORT=1025 \
   SMTP_USER=dev@local \
@@ -129,6 +130,7 @@ else
   PORT="$PORT" \
   ENV_FILE="$ENV_FILE" \
   DEV_ECHO_CODE="$DEV_ECHO" \
+  BANK_PATH="$SERVER_DIR/data/bank.json" \
   "$SERVER_DIR/tmp/architect-prep-dev" &
 fi
 BACKEND_PID=$!

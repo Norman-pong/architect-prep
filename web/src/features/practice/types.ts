@@ -47,3 +47,23 @@ export interface SubmitResponse {
   correct_answer_keys: string[];
   explanation: string;
 }
+
+// ─── Practice Session ─────────────────────────────────
+
+export interface PracticeSessionConfig {
+  count: number;
+  scope: 'all' | number; // 'all' or chapter ID
+}
+
+export interface PracticeSessionAnswer {
+  selected: string[];
+  result: SubmitResponse;
+}
+
+export interface PracticeSession {
+  questions: Question[];
+  config: PracticeSessionConfig;
+  answers: Record<number, PracticeSessionAnswer>;
+  currentIndex: number;
+  startedAt: string;
+}

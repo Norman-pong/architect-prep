@@ -1,41 +1,168 @@
-import { useState, useEffect } from 'react';
-import { useSearch } from '@tanstack/react-router';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { LogOut } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { EmptyState } from '@/components/empty-state';
-import { EmptyIllustration } from '@/components/empty-state';
 import { PageHero } from '@/components/layout/page-hero';
 import { useSetHeader } from '@/components/layout/header-context';
 import { QuizSkeleton } from './quiz-skeleton';
 import { QuizOption } from './quiz-option';
 import { QuizResult } from './quiz-result';
-import type { Question, PaginatedResponse, SubmitResponse } from './types';
+import { PracticeStart } from './practice-start';
+import { PracticeResults } from './practice-results';
+import { usePracticeSession } from './session';
+import type { Question, SubmitResponse, PracticeSession } from './types';
+
+type Phase = 'idle' | 'playing' | 'finished';
 
 export function PracticePage() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedOptions, setSelectedOptions] = useState<Set<string>>(new Set());
-  const [submitResult, setSubmitResult] = useState<SubmitResponse | null>(null);
-  const queryClient = useQueryClient();
-  const search = useSearch({ from: '/_authenticated/practice/' });
-  const chapterFilter = search.chapter;
+  const { session, start, update, exit, finish } = usePracticeSession();
+  const [phase, setPhase] = useState<Phase>(() =>
+    session && session.currentIndex < session.questions.length ? 'idle' : 'idle',
+  );
 
-  useEffect(() => {
-    setCurrentIndex(0);
-    setSelectedOptions(new Set());
-    setSubmitResult(null);
-  }, [chapterFilter]);
-
-  const { data: questionList, isLoading } = useQuery({
-    queryKey: ['practice-questions', chapterFilter],
-    queryFn: async () => {
-      const resp = await api.get('/practice/questions', {
-        params: { chapter_id: chapterFilter ?? undefined, page: 1, page_size: 100 },
+  // Fetch random questions on new practice
+  const fetchQuestions = useMutation({
+    mutationFn: async (params: { count: number; scope: 'all' | number }) => {
+      const resp = await api.get('/practice/questions/random', {
+        params: {
+          count: params.count,
+          chapter_id: params.scope === 'all' ? undefined : params.scope,
+        },
       });
-      return resp.data.data as PaginatedResponse<Question>;
+      return resp.data.data as { items: Question[]; total: number };
     },
+  });
+
+  function handleStart(count: number, scope: 'all' | number) {
+    fetchQuestions.mutate(
+      { count, scope },
+      {
+        onSuccess: (data) => {
+          const newSession: PracticeSession = {
+            questions: data.items,
+            config: { count, scope },
+            answers: {},
+            currentIndex: 0,
+            startedAt: new Date().toISOString(),
+          };
+          start(newSession);
+          setPhase('playing');
+        },
+      },
+    );
+  }
+
+  function handleContinue() {
+    if (session) setPhase('playing');
+  }
+
+  function handleAbandon() {
+    finish();
+  }
+
+  function handleExit() {
+    exit();
+    setPhase('idle');
+  }
+
+  function handleFinish() {
+    setPhase('finished');
+  }
+
+  function handleRestart() {
+    finish();
+    setPhase('idle');
+  }
+
+  if (phase === 'idle') {
+    return (
+      <PracticeStart
+        session={session}
+        onStart={handleStart}
+        onContinue={handleContinue}
+        onAbandon={handleAbandon}
+      />
+    );
+  }
+
+  if (phase === 'finished' && session) {
+    return <PracticeResults session={session} onRestart={handleRestart} />;
+  }
+
+  // phase === 'playing'
+  if (!session) {
+    return (
+      <PracticeStart
+        session={null}
+        onStart={handleStart}
+        onContinue={handleContinue}
+        onAbandon={handleAbandon}
+      />
+    );
+  }
+
+  if (fetchQuestions.isPending) return <QuizSkeleton />;
+
+  return (
+    <QuizRunner
+      session={session}
+      onAnswer={(questionId, selected, result) => {
+        update((prev) => ({
+          ...prev,
+          answers: { ...prev.answers, [questionId]: { selected, result } },
+        }));
+      }}
+      onNext={() => {
+        update((prev) => ({ ...prev, currentIndex: prev.currentIndex + 1 }));
+      }}
+      onExit={handleExit}
+      onFinish={handleFinish}
+    />
+  );
+}
+
+// ── Quiz Runner ────────────────────────────────────────
+
+interface QuizRunnerProps {
+  session: PracticeSession;
+  onAnswer: (questionId: number, selected: string[], result: SubmitResponse) => void;
+  onNext: () => void;
+  onExit: () => void;
+  onFinish: () => void;
+}
+
+function QuizRunner({ session, onAnswer, onNext, onExit, onFinish }: QuizRunnerProps) {
+  const queryClient = useQueryClient();
+  const questions = session.questions;
+  const currentIndex = session.currentIndex;
+  const currentQuestion = questions[currentIndex];
+
+  const existingAnswer = currentQuestion ? session.answers[currentQuestion.id] : undefined;
+  const [selectedOptions, setSelectedOptions] = useState<Set<string>>(
+    () => new Set(existingAnswer?.selected ?? []),
+  );
+  const [submitResult, setSubmitResult] = useState<SubmitResponse | null>(
+    () => existingAnswer?.result ?? null,
+  );
+
+  // Sync local state when question changes
+  const [lastSyncedId, setLastSyncedId] = useState<number | null>(null);
+  if (currentQuestion && currentQuestion.id !== lastSyncedId) {
+    const ans = session.answers[currentQuestion.id];
+    setSelectedOptions(new Set(ans?.selected ?? []));
+    setSubmitResult(ans?.result ?? null);
+    setLastSyncedId(currentQuestion.id);
+  }
+
+  const isMultiple = currentQuestion?.question_type === 'multiple';
+  const isLast = currentIndex >= questions.length - 1;
+
+  useSetHeader({
+    title: '刷题练习',
+    subtitle: `${currentIndex + 1} / ${questions.length}`,
   });
 
   const submitMutation = useMutation({
@@ -45,23 +172,10 @@ export function PracticePage() {
     },
     onSuccess: (data) => {
       setSubmitResult(data);
+      onAnswer(currentQuestion.id, Array.from(selectedOptions).sort(), data);
       void queryClient.invalidateQueries({ queryKey: ['practice-stats'] });
       void queryClient.invalidateQueries({ queryKey: ['wrong-questions'] });
     },
-  });
-
-  const questions = questionList?.items ?? [];
-  const currentQuestion = questions[currentIndex];
-  const isMultiple = currentQuestion?.question_type === 'multiple';
-
-  const progressBadge = (
-    <Badge variant="info" className="px-3 py-1 text-sm">
-      {currentIndex + 1} / {questions.length}
-    </Badge>
-  );
-  useSetHeader({
-    title: '刷题练习',
-    subtitle: '单选/多选,每题 1 个正确答案',
   });
 
   function toggleOption(key: string) {
@@ -86,28 +200,50 @@ export function PracticePage() {
   }
 
   function handleNext() {
-    if (currentIndex >= questions.length - 1) return;
-    setCurrentIndex(currentIndex + 1);
-    setSelectedOptions(new Set());
-    setSubmitResult(null);
+    if (isLast) {
+      onFinish();
+      return;
+    }
+    onNext();
   }
 
-  if (isLoading) return <QuizSkeleton />;
+  const progressPct = ((currentIndex + (submitResult ? 1 : 0)) / questions.length) * 100;
 
   if (!currentQuestion) {
     return (
-      <EmptyState
-        icon={<EmptyIllustration name="empty-questions" />}
-        title="暂无题目"
-        description="题库还没有题目,先去添加题目或等待管理员补充题库"
-      />
+      <div className="mx-auto max-w-2xl text-center">
+        <p className="text-muted-foreground">题目已用完</p>
+        <Button className="mt-4" onClick={onFinish}>
+          查看结果
+        </Button>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <PageHero>{progressBadge}</PageHero>
+    <div className="mx-auto max-w-2xl space-y-6">
+      {/* Progress bar + exit */}
+      <PageHero>
+        <div className="flex items-center gap-3">
+          <Badge variant="info" className="px-3 py-1 text-sm">
+            {currentIndex + 1} / {questions.length}
+          </Badge>
+          <Button variant="ghost" size="sm" onClick={onExit}>
+            <LogOut className="mr-1 size-3.5" />
+            退出
+          </Button>
+        </div>
+      </PageHero>
 
+      {/* Progress bar */}
+      <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+        <div
+          className="h-full rounded-full bg-primary transition-all duration-300"
+          style={{ width: `${progressPct}%` }}
+        />
+      </div>
+
+      {/* Question card */}
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center gap-2">
@@ -128,10 +264,11 @@ export function PracticePage() {
                 单选
               </Badge>
             )}
-            <Badge variant="secondary" className="gap-1">
-              难度 {currentQuestion.difficulty}
-            </Badge>
-            <span className="ml-auto hidden md:inline-flex">{progressBadge}</span>
+            {currentQuestion.difficulty != null && (
+              <Badge variant="secondary" className="gap-1">
+                难度 {currentQuestion.difficulty}
+              </Badge>
+            )}
           </div>
           <CardTitle className="mt-2 text-base leading-relaxed">
             {currentQuestion.content}
@@ -162,6 +299,7 @@ export function PracticePage() {
 
       {submitResult && <QuizResult result={submitResult} />}
 
+      {/* Actions */}
       <div className="flex justify-end gap-2">
         {!submitResult ? (
           <Button
@@ -171,11 +309,9 @@ export function PracticePage() {
             {submitMutation.isPending ? '提交中...' : '提交答案'}
           </Button>
         ) : (
-          currentIndex < questions.length - 1 && (
-            <Button variant="outline" onClick={handleNext}>
-              下一题
-            </Button>
-          )
+          <Button variant="outline" onClick={handleNext}>
+            {isLast ? '完成练习' : '下一题'}
+          </Button>
         )}
       </div>
     </div>

@@ -23,6 +23,7 @@ func NewHandler(repo *Repository, service *Service) *Handler {
 // The caller should supply a group that already includes the /api/v1 prefix.
 func (h *Handler) RegisterRoutes(r *gin.RouterGroup) {
 	r.GET("/questions", h.ListQuestions)
+	r.GET("/questions/random", h.ListRandomQuestions)
 	r.GET("/questions/:id", h.GetQuestion)
 	r.POST("/submit", h.Submit)
 	r.GET("/wrong-questions", h.ListWrongQuestions)
@@ -65,6 +66,30 @@ func (h *Handler) ListQuestions(c *gin.Context) {
 		return
 	}
 	middleware.Success(c, resp)
+}
+
+// ListRandomQuestions returns up to `count` random questions.
+// Query params: count (default 20, max 100), chapter_id (optional).
+func (h *Handler) ListRandomQuestions(c *gin.Context) {
+	var req QuestionListRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		middleware.Error(c, http.StatusBadRequest, "invalid query parameters")
+		return
+	}
+	count, _ := strconv.Atoi(c.Query("count"))
+	if count < 1 {
+		count = 20
+	}
+	if count > 100 {
+		count = 100
+	}
+
+	items, err := h.repo.ListRandomQuestions(c.Request.Context(), count, req.ChapterID)
+	if err != nil {
+		middleware.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	middleware.Success(c, gin.H{"items": items, "total": len(items)})
 }
 
 // GetQuestion returns a single question by id.
