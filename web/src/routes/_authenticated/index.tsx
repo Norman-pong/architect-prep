@@ -9,6 +9,7 @@ import { useChapters } from '@/features/knowledge/hooks';
 import { useSetHeader } from '@/components/layout/header-context';
 import type { PracticeStats } from '@/features/practice/types';
 import type { ReviewStats } from '@/features/review/types';
+import { DashboardSkeleton } from './dashboard-skeleton';
 
 const BookIcon = Book;
 const QuizIcon = FileText;
@@ -55,6 +56,10 @@ function DashboardPage() {
   const subtitle = dueCount > 0 ? `今日到期 ${dueCount} 张卡片` : '今天没有需要复习的卡片';
   useSetHeader({ title: '学习仪表盘', subtitle });
 
+  if (progressLoading || chaptersLoading || statsLoading) {
+    return <DashboardSkeleton />;
+  }
+
   return (
     <div className="space-y-4">
       {/* 今日复习 — 置顶 CTA。视觉锚点：用渐变背景 + 左侧 accent bar 强化
@@ -95,9 +100,7 @@ function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold tabular-nums">
-                {progressLoading ? '--' : coverage}
-              </span>
+              <span className="text-3xl font-bold tabular-nums">{coverage}</span>
               <span className="text-sm font-medium text-muted-foreground">%</span>
             </div>
             <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
@@ -107,7 +110,7 @@ function DashboardPage() {
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              {progressLoading ? '--' : `已掌握 ${masteredPoints} / ${totalPoints} 知识点`}
+              {`已掌握 ${masteredPoints} / ${totalPoints} 知识点`}
             </p>
           </CardContent>
         </Card>
@@ -120,9 +123,7 @@ function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold tabular-nums">
-                {chaptersLoading ? '--' : (chapters?.length ?? 0)}
-              </span>
+              <span className="text-3xl font-bold tabular-nums">{chapters?.length ?? 0}</span>
               <span className="text-sm font-medium text-muted-foreground">章</span>
             </div>
             <p className="text-xs text-muted-foreground">覆盖 20 章教材体系</p>
@@ -137,9 +138,7 @@ function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold tabular-nums">
-                {statsLoading ? '--' : totalQuestions}
-              </span>
+              <span className="text-3xl font-bold tabular-nums">{totalQuestions}</span>
               <span className="text-sm font-medium text-muted-foreground">题</span>
               {accuracy !== undefined && hasPracticeData && (
                 <span className="ml-auto text-sm font-medium text-success">正确率 {accuracy}%</span>
