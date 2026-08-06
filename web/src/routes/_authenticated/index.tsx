@@ -9,6 +9,7 @@ import { useChapters } from '@/features/knowledge/hooks';
 import { useSetHeader } from '@/components/layout/header-context';
 import type { PracticeStats } from '@/features/practice/types';
 import type { ReviewStats } from '@/features/review/types';
+import { AnimatedNumber } from '@/components/ui/animated-number';
 import { DashboardSkeleton } from './dashboard-skeleton';
 
 const BookIcon = Book;
@@ -75,7 +76,13 @@ function DashboardPage() {
             <div className="min-w-0">
               <h2 className="text-lg font-semibold text-foreground">今日复习</h2>
               <p className="mt-0.5 text-sm text-muted-foreground">
-                {dueCount > 0 ? `还有 ${dueCount} 张卡片待复习` : '今天没有需要复习的卡片'}
+                {dueCount > 0 ? (
+                  <>
+                    还有 <AnimatedNumber value={dueCount} duration={500} /> 张卡片待复习
+                  </>
+                ) : (
+                  '今天没有需要复习的卡片'
+                )}
               </p>
             </div>
           </div>
@@ -100,7 +107,9 @@ function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold tabular-nums">{coverage}</span>
+              <span className="text-3xl font-bold tabular-nums">
+                <AnimatedNumber value={coverage} duration={500} />
+              </span>
               <span className="text-sm font-medium text-muted-foreground">%</span>
             </div>
             <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
@@ -123,7 +132,9 @@ function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold tabular-nums">{chapters?.length ?? 0}</span>
+              <span className="text-3xl font-bold tabular-nums">
+                <AnimatedNumber value={chapters?.length ?? 0} duration={500} />
+              </span>
               <span className="text-sm font-medium text-muted-foreground">章</span>
             </div>
             <p className="text-xs text-muted-foreground">覆盖 20 章教材体系</p>
@@ -138,10 +149,14 @@ function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold tabular-nums">{totalQuestions}</span>
+              <span className="text-3xl font-bold tabular-nums">
+                <AnimatedNumber value={totalQuestions} duration={500} />
+              </span>
               <span className="text-sm font-medium text-muted-foreground">题</span>
               {accuracy !== undefined && hasPracticeData && (
-                <span className="ml-auto text-sm font-medium text-success">正确率 {accuracy}%</span>
+                <span className="ml-auto text-sm font-medium text-success">
+                  正确率 <AnimatedNumber value={accuracy} duration={500} />%
+                </span>
               )}
             </div>
             <p className="text-xs text-muted-foreground">已练习题目数</p>
