@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState, EmptyIllustration } from '@/components/empty-state';
+import { WrongQuestionsSkeleton } from './wrong-questions-skeleton';
 import { cn } from '@/lib/utils';
 import { useSetHeader } from '@/components/layout/header-context';
 import { PageHero } from '@/components/layout/page-hero';
@@ -85,7 +86,7 @@ export function WrongQuestionsPage() {
   }
 
   if (isLoading) {
-    return <p className="text-muted-foreground">加载中...</p>;
+    return <WrongQuestionsSkeleton />;
   }
 
   if (items.length === 0) {
