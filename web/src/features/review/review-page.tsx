@@ -3,18 +3,17 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { EmptyState } from '@/components/empty-state';
+import { EmptyIllustration, EmptyState } from '@/components/empty-state';
 import { cn } from '@/lib/utils';
 import { useReviewDue, useReviewGrade, useReviewMigrate, useReviewStats } from './queries';
+import { ReviewCardSkeleton } from './review-skeleton';
 import { useSetHeader } from '@/components/layout/header-context';
 import { PageHero } from '@/components/layout/page-hero';
 import type { ReviewItem } from './types';
-
 // ─── Visual states ─────────────────────────────────────────────────────
 // A single card sits at the top of the page. Fading-out cards stay in
 // the DOM until the queue refetches so the opacity transition runs.
 // ────────────────────────────────────────────────────────────────────────
-
 const RATING_LABELS: Record<1 | 2 | 3 | 4, { label: string; hint: string }> = {
   1: { label: '重答', hint: '完全忘记' },
   2: { label: '困难', hint: '犹豫 / 答错' },
@@ -65,7 +64,7 @@ export function ReviewPage() {
   });
 
   if (statsLoading && queueLoading) {
-    return <p className="text-muted-foreground">加载中...</p>;
+    return <ReviewCardSkeleton />;
   }
 
   function handleGrade(rating: 1 | 2 | 3 | 4) {
@@ -100,7 +99,11 @@ export function ReviewPage() {
       </section>
 
       {!current || !hasMore ? (
-        <EmptyState title="今日复习已完成" description="所有到期卡片都复习完毕，明天继续加油。" />
+        <EmptyState
+          icon={<EmptyIllustration name="empty-done" />}
+          title="今日复习已完成"
+          description="所有到期卡片都复习完毕，明天继续加油。"
+        />
       ) : (
         <ReviewCardView
           key={current.id}
@@ -145,7 +148,7 @@ function ReviewCardView({ item, leaving, isPending, onGrade }: ReviewCardViewPro
   return (
     <div
       className={cn(
-        'mx-auto flex max-w-2xl flex-col gap-4 transition-opacity duration-200',
+        'mx-auto flex max-w-2xl flex-col gap-4 animate-fadeIn transition-opacity duration-200',
         leaving ? 'opacity-0' : 'opacity-100',
       )}
     >
