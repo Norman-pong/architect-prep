@@ -6,6 +6,7 @@ import { LogOut, RefreshCw, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input, Field } from '@/components/ui/input';
+import { toast } from '@/components/ui/toast';
 import { useThemeStore } from '@/stores/theme-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { useSetHeader } from '@/components/layout/header-context';
@@ -22,7 +23,6 @@ export function SettingsPage() {
   const { auth, setUser, reset } = useAuthStore();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [savedHint, setSavedHint] = useState(false);
   // Page title lives in the layout Header (B-010: settings page now lives
   // in features/settings and is responsible for its own header identity).
   useSetHeader({ title: '设置' });
@@ -41,8 +41,7 @@ export function SettingsPage() {
     // updating local state. For v1 we trust the local update and rely on
     // the next /api/v1/auth/me poll to re-sync.
     setUser({ ...auth.user, nickname: trimmed }, auth.token ?? '');
-    setSavedHint(true);
-    window.setTimeout(() => setSavedHint(false), 1800);
+    toast.success('昵称已保存');
   }, [auth, nicknameDraft, setUser]);
 
   const handleLogout = useCallback(() => {
@@ -69,6 +68,7 @@ export function SettingsPage() {
     }
     // Force re-fetch on next page by invalidating everything.
     void queryClient.invalidateQueries();
+    toast.success('缓存已清空');
   }, [queryClient]);
 
   return (
@@ -83,7 +83,7 @@ export function SettingsPage() {
           <Field label="邮箱">
             <Input value={auth.user?.email ?? ''} readOnly disabled />
           </Field>
-          <Field label="昵称" description={savedHint ? '已保存' : '保存后立即生效'}>
+          <Field label="昵称" description="保存后立即生效">
             <div className="flex flex-col gap-2 sm:flex-row">
               <Input
                 value={nicknameDraft}
