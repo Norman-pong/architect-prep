@@ -10,7 +10,12 @@ export default defineConfig({
   fmt: {
     semi: true,
     singleQuote: true,
-    ignorePatterns: ['src/routeTree.gen.ts'],
+    // Patterns are resolved from this file's directory (oxfmt schema: "based on the
+    // location of the Oxfmt configuration file"). `**/*.md` requires depth ≥ 1, so
+    // root-level .md/.json files (e.g. web/README.md) need a separate `*.md` / `*.json`.
+    // Files outside web/ (e.g. repo-root README.md, docs/, server/) are out of scope
+    // for this web/-local config; run `vp check` from web/ to avoid scanning them.
+    ignorePatterns: ['src/routeTree.gen.ts', '*.md', '*.json', '**/*.md', '**/*.json'],
   },
 
   lint: {
