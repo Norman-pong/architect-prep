@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ToastViewport } from '@/components/ui/toast-viewport';
 
 import './styles/index.css';
 import './i18n/config';
@@ -43,6 +44,7 @@ createRoot(root).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
+      <ToastViewport />
     </QueryClientProvider>
   </StrictMode>,
 );
