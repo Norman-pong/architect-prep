@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input, Field } from '@/components/ui/input';
 import { toast } from '@/components/ui/toast';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useThemeStore } from '@/stores/theme-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { useSetHeader } from '@/components/layout/header-context';
@@ -30,6 +31,7 @@ export function SettingsPage() {
   // Local draft of the nickname — v1: write to zustand + persist only.
   // v2 (TODO): also call PUT /api/v1/auth/profile to mirror server-side.
   const [nicknameDraft, setNicknameDraft] = useState(auth.user?.nickname ?? '');
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
 
   const handleSaveNickname = useCallback(() => {
     if (!auth.user) return;
@@ -102,7 +104,11 @@ export function SettingsPage() {
             </div>
           </Field>
           <div className="border-t border-border pt-4">
-            <Button variant="destructive" onClick={handleLogout} className="w-full sm:w-auto">
+            <Button
+              variant="destructive"
+              onClick={() => setLogoutDialogOpen(true)}
+              className="w-full sm:w-auto"
+            >
               <LogOut className="size-4" />
               退出登录
             </Button>
@@ -166,6 +172,17 @@ export function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={logoutDialogOpen}
+        onOpenChange={setLogoutDialogOpen}
+        title="确认登出?"
+        description="登出后将清空本地缓存,需要重新使用邮箱登录"
+        confirmLabel="登出"
+        cancelLabel="取消"
+        variant="destructive"
+        onConfirm={handleLogout}
+      />
     </div>
   );
 }
