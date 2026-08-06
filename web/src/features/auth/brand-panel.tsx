@@ -4,7 +4,7 @@
  */
 export function BrandPanel() {
   return (
-    <div className="relative hidden h-full w-full overflow-hidden md:flex md:flex-col md:justify-between bg-gradient-to-br from-primary/95 via-primary to-primary/80 p-12 text-primary-foreground">
+    <div className="animate-fadeIn relative hidden h-full w-full overflow-hidden md:flex md:flex-col md:justify-between bg-gradient-to-br from-primary/95 via-primary to-primary/80 p-12 text-primary-foreground">
       {/* Decorative grid */}
       <div
         aria-hidden
