@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useChapters } from '@/features/knowledge/hooks';
 import { useSetHeader } from '@/components/layout/header-context';
+import { StatsSkeleton } from './stats-skeleton';
+import { AnimatedNumber } from '@/components/ui/animated-number';
 import type { ChapterStat, PracticeStats } from './types';
 
 /** Map a 0..1 accuracy ratio to a Tailwind color class (matches knowledge mastery colors). */
@@ -77,7 +79,9 @@ function AccuracyRing({ accuracy, size = 96 }: { accuracy: number; size?: number
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-2xl font-bold tabular-nums text-foreground">{pct}%</span>
+        <span className="text-2xl font-bold tabular-nums text-foreground">
+          <AnimatedNumber value={pct} duration={500} />%
+        </span>
         <span className="text-xs text-muted-foreground">正确率</span>
       </div>
     </div>
@@ -98,7 +102,7 @@ export function StatsPage() {
   useSetHeader({ title: '学习统计' });
 
   if (isLoading) {
-    return <p className="text-muted-foreground">加载中...</p>;
+    return <StatsSkeleton />;
   }
 
   if (!stats || stats.total_questions === 0) {
@@ -143,13 +147,17 @@ export function StatsPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Card>
             <CardContent className="pt-6">
-              <div className="text-3xl font-bold text-foreground">{stats.total_questions}</div>
+              <div className="text-3xl font-bold text-foreground">
+                <AnimatedNumber value={stats.total_questions} duration={500} />
+              </div>
               <p className="mt-1 text-sm text-muted-foreground">总答题数</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
-              <div className="text-3xl font-bold text-success">{stats.correct_count}</div>
+              <div className="text-3xl font-bold text-success">
+                <AnimatedNumber value={stats.correct_count} duration={500} />
+              </div>
               <p className="mt-1 text-sm text-muted-foreground">正确数</p>
             </CardContent>
           </Card>
@@ -174,7 +182,8 @@ export function StatsPage() {
                   <div className="flex items-center justify-between text-sm">
                     <span className="truncate font-medium text-foreground">{title}</span>
                     <span className="ml-2 shrink-0 text-muted-foreground">
-                      {cs.correct_count}/{cs.total_questions} · {pct}%
+                      {cs.correct_count}/{cs.total_questions} ·{' '}
+                      <AnimatedNumber value={pct} duration={400} />%
                     </span>
                   </div>
                   <AccuracyBar accuracy={cs.accuracy} />
