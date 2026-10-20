@@ -58,7 +58,7 @@ jobs:
           # GHCR packages default to private on first creation; without public
           # visibility, anonymous `docker pull` for end users fails.
           # This repo's owner is a user (not an org), so /user/packages/... is correct.
-          owner="${{ github.repository_owner }}"
+          owner="$(printf '%s' "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
           pkg="${{ env.IMAGE_NAME }}"
           echo "Setting ghcr.io/${owner}/${pkg} visibility to public..."
           ok=""
@@ -88,7 +88,7 @@ jobs:
           # avoids the missing-`v` prefix trap.
           ALL_TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-          owner="${{ github.repository_owner }}"
+          owner="$(printf '%s' "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
           pkg="${{ env.IMAGE_NAME }}"
           pull_tag="$(printf '%s\n' "${ALL_TAGS}" | sed -n '1p' | sed 's@^.*:@@')"
           if [ -z "${pull_tag}" ]; then
