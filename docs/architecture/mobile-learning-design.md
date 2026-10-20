@@ -175,6 +175,8 @@
 | `lg: ≥1024px` | 仅字号/列数微调,如 Dashboard 卡片 `lg:grid-cols-4`;不影响知识体系页 |
 | `xl: ≥1280px` | 不使用,避免增加心智负担 |
 
+> **Bento 页面例外（2026-10-20 批准）**：概览/聚合型页面（当前：仪表盘）允许「移动 2 栏 mosaic + md+ 6 栏」网格（见 `docs/spec/2026-10-20-bento-layout-interaction-design.md §3`）；非 bento 页面（阅读器、答题、复习、设置、登录、壳层与弹层）仍保持单列/既有布局。bento 瓦片内所有触控目标仍须 ≥44px。
+>
 > 不在中间宽度(640–767)做特殊处理。640–767px 沿用"接近移动端"但有 `sm:` 圆角略增的过渡,组件本身自适应。
 >
 > 断点用 `md:` 前缀在 `chapter-tree.tsx` 顶层一次性分流:`<MobileOutline />` vs `<DesktopOutline />`,避免在每个子元素重复写 `md:hidden / hidden md:block` 造成心智混乱。

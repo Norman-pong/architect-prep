@@ -1,7 +1,7 @@
 # UI / 交互统一升级 — 设计文档
 
 > 日期: 2026-08-06
-> 状态: 已批准(待实现)
+> 状态: 已实施（含偏差清单，见 §0.6；2026-10-20 由 bento 方案补齐剩余交互缺陷）
 > 范围: 全站视觉与交互统一升级(纯前端,不含后端)
 > 接力: 后续由 writing-plans 输出实施计划
 
@@ -16,7 +16,7 @@
 - 设计令牌系统(`styles/index.css`,oklch 色彩 + spacing/radius/text/font 主题,浅/深色完整)
 - `<Card>/<Button>/<Badge>/<Input>/<Dialog>/<EmptyState>` 等 UI 原语(基于 `@base-ui/react` + `class-variance-authority`)
 - Sidebar(分组导航 + 移动端抽屉)+ 统一 Header(h-12 移动 / h-16 桌面)+ `PageHero`(移动端专属动作带)
-- 路由壳 `_authenticated/route.tsx` 已重构为 flex 全宽壳层;`muted/40` 画布背景
+- 路由壳 `_authenticated/route.tsx` 已重构为 flex 全宽壳层;画布为 `muted/30`（桌面白卡已于 2026-10-20 移除，页面按页 max-width）
 - 知识体系页已分 MobileOutline / DesktopOutline / PointReader(2026-07-14 mobile-learning-design.md)
 - 6 个核心页面(仪表盘 / 知识 / 刷题 / 复习 / 错题 / 统计 / 设置)均可工作
 
@@ -52,6 +52,14 @@
 - **令牌优先**:动效时长 / easing 走 token,与色彩/间距统一
 - **可降级**:`prefers-reduced-motion: reduce` 下所有 CSS keyframes 静态化
 - **类型严格**:每个新原语有完整 TS 类型,通过 `vp lint --type-aware -f agent` 0 warnings
+
+### 0.6 实施偏差清单（2026-10-20 补齐）
+
+本 spec 的多数条目已落地；以下为实施过程中确认的偏差，已于 2026-10-20 的「前端交互优化 + Bento」方案中修复或明确记录：
+
+- ✅ 已修复：全站 Error 态缺失、Dashboard 数字可能停在 0、Toast 无 hover/Escape、reduced-motion 只停 keyframes、骨架与真实布局不等高、桌面「白卡套卡片」。
+- ⚠️ 保留偏差：`prefers-reduced-motion` 下 transition/animation 时长压缩到 0.01ms（无动画过程），但 hover/pressed 的最终 transform 仍瞬时到位；toast 移动端避让偏移仍为 68px 硬编码。
+- 📌 范围调整：仪表盘已由 3 张统计卡重做为 7 瓦片 bento（见 `docs/spec/2026-10-20-bento-layout-interaction-design.md`），不再按本 spec §3.2 的 4 卡骨架实现。
 
 ---
 
@@ -162,8 +170,9 @@ toast.warning('警告', { description: '详情', durationMs: 5000 });
 <AnimatedNumber value={42} duration={400} className="..." />
 ```
 
-- rAF + easeOutQuart,只播一次(mount 时)
-- 后续 prop 变化**不重播**;若需重播,父组件传 `key={value}` 强制重 mount
+- rAF + easeOutQuart,首次 mount 从 0 播到 value
+- **2026-10-20 调整**：`value` 变化时从当前显示值继续动画到新值（修复数据晚到导致永久停在 0）；调用方不再需要传 `key` 强制重挂载
+- 无变化/小于 0.5 的 delta、`prefers-reduced-motion`、`document.hidden`、元素不在视口时直接显示目标值
 - 跳过条件:`document.hidden` || 不在视口(用 IntersectionObserver)
 - 收尾阈值:|`current - target`| < 0.5 时 setState(target) 停止
 - 渲染 `Math.round(currentValue)`(默认 0 位小数;`decimals={1}` 可配)
@@ -340,7 +349,7 @@ JS 端 `useReducedMotion()` 只服务于 rAF 驱动的 `AnimatedNumber`;CSS keyf
 - [ ] 0 处第三方动效库 / `window.confirm` / `window.alert` 引入
 - [ ] 0 个文件 > 300 行(±20 行浮动允许)
 - [ ] `prefers-reduced-motion: reduce` 下所有动效停止
-- [ ] 移动 390px / 平板 768px / 桌面 1440px 三档断点 OK
+- [ ] 移动 390px / 平板 768px / 桌面 1024px / 1280px / 1440px 五档断点 OK（2026-10-20 补充 1024/1280 最紧区间）
 - [ ] 暗色模式:骨架背景 = `bg-muted/60`,与内容对比度足够
 - [ ] Toast 不遮 Dialog(分层 z-index 生效)
 - [ ] `vp check` + `vp lint --type-aware -f agent` 0 errors / 0 warnings

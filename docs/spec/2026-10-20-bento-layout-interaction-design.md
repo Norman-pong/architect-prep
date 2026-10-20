@@ -1,6 +1,6 @@
 # 前端交互优化 + 便当盒（Bento）布局 — 设计方案
 
-> 日期：2026-10-20 ｜ 版本：**v2.1（已按交叉评审 v1 + v2 复核 + 浏览器实测修订）** ｜ 状态：**待审阅（未实施，未改动任何源码）**
+> 日期：2026-10-20 ｜ 版本：**v2.2（已实施 Phase 0 + Phase 1）** ｜ 状态：**Phase 0 交互修复 + Phase 1 Bento/仪表盘已实施；Phase 2/3 待二期决策**
 > 范围：`web/` 前端视觉与交互；不涉及后端接口改动
 > 输入证据：交互审计 A（壳层/仪表盘/知识体系）、交互审计 B（刷题/复习/错题/统计/设置/登录）、浏览器实测截图与度量、交叉评审意见（见附录 A）
 > 结论先行：**有明确优化空间**。分两层推进：① 先修交互正确性问题（P0/P1）；② 再用便当盒布局提升「概览/聚合」页面的信息密度与扫读效率。bento 不进入阅读器、答题、复习卡片等专注流页面。
@@ -624,7 +624,10 @@ export interface BentoLinkCardProps extends Omit<BentoCardProps, 'as'> {
 
 ---
 
-## 10. 待审阅决策（请逐条选择）
+## 10. 审阅决策与实施结论（2026-10-20 已确认）
+
+> 用户确认：D1=A（一期仅仪表盘）、D2=A（移除白卡 + 按页 max-width）、D3=A（2/6 栏）、D4=全要（继续学习/薄弱章节 Top5/错题数）、D5=A（先 Phase 0 再 Phase 1）、D6=A（收藏页签放 Phase 2-5）。
+> 实际交付与偏差见附录 E。以下为原始决策表（保留供追溯）。
 
 | 编号 | 决策 | 选项 | 推荐 |
 | --- | --- | --- | --- |
@@ -713,3 +716,54 @@ export interface BentoLinkCardProps extends Omit<BentoCardProps, 'as'> {
 | R8 剩余漏项 | I-20 知识骨架并入 0-4；I-9 并入 0-6；附录 B 补齐 I-9/I-20/I-22/I-23/I-24/I-25/I-26 |
 | R10 剩余缺口 | 同 N3 |
 | 浏览器实测并入 | 新增 V1/V3–V8/V10–V16/V18 到 §1.3/§1.4/附录 B；滚动锁结论按实测修正为 PASS（建议仍收敛 dialog）；新增「移动 hero 文案不折行」验收 |
+
+
+## 附录 E：实施记录与偏差（2026-10-20）
+
+### E.1 已交付
+
+- **Phase 0（交互修复，8 个 PR 合并为 9 个提交）**：
+  - 反馈：`ErrorState` + 页面/瓦片级四态与重试；公开登录端点 401 不再整页刷新；网络失败/超时处理；登录单条 inline 反馈。
+  - 数据：`practiceKeys`/`reviewKeys` 共享 hook 与统一失效；`AnimatedNumber` 值变化同步；仪表盘不再整页 gate。
+  - 知识体系：路由拆分（374→188 行）；移动抽屉导航、跨章前后、全部展开逐章加载、阅读器 loading/error 分离、标记已学乐观更新、Base UI 弹层（焦点陷阱/Escape/焦点归还/动画）、深链与搜索（分页/高亮/纯文本/清 query）、阅读器底栏贴底、「本章真题」带 chapter、骨架行数=真实章数。
+  - 壳层/可达性：仪表盘入口/品牌回首页/aria-current/44px；Header 桌面左对齐、移动副标题隐藏；`h-dvh`+safe-area+skip link；z-index token；reduced-motion 全局抑制；focus-visible 统一；Toast hover/focus 引用计数暂停/Escape/44px/避让底栏；lucide 图标统一（删除自绘 icon）；i18n 补 key。
+  - 页面：复习防重复评分/失败不跳卡/键盘翻卡/移动指标条；刷题 session 生命周期/防双击/桌面退出/sticky 操作条/URL 章节预选；错题分页/单题 pending/已订正；统计共享 hook/未归类；设置清缓存确认；主题 system 首次切换/实时跟随 OS/水合 TDZ。
+  - 工程：拆分 quiz/review/wrong 至 ≤250 行；新增 15 个测试文件（合计 81 tests）；补装 jest-dom 修复既有测试基线。
+- **Phase 1（Bento + 仪表盘）**：
+  - `components/ui/bento.tsx`（BentoGrid/BentoCard/BentoLinkCard，2/6 栏、5 尺寸、minH、tone、整卡 Link 语义、dev 锚点校验）。
+  - 移除桌面白卡，容器 `max-w-6xl` + 各页 max-width；仪表盘 7 瓦片（hero/学习进度/继续学习/刷题/错题/待学薄弱 Top5/考试信息），瓦片独立四态；移动顺序与桌面 span 矩阵按 §3.7；bento 组件测试 6 个。
+- **后端阻塞修复**：`server/internal/review/service.go` 修复 Review 状态卡 FSRS 返回 nil Step 导致 `/review/grade` 500（超出原前端范围，单独提交并披露）。
+
+### E.2 与 v2.1 设计的偏差 / 延后项
+
+| 项 | 状态 | 说明 |
+| --- | --- | --- |
+| 12 栏网格 | 未采用 | 按 D3-A 用 2/6 栏；6 栏可表达全部比例，避免 §1.7 大改与 1024 过挤 |
+| 首批瓦片 stagger 入场 | 部分 | 已加 `animate-fadeIn` 与 hover/pressed；未做逐瓦片 40ms stagger |
+| reduced-motion | 部分 | duration 压到 0.01ms（无动画过程），hover/pressed 终点瞬时到位 |
+| Toast 移动端偏移 | 保留 | 仍硬编码 68px 避让阅读器底栏，未抽 token |
+| 登录失败反馈 | 调整 | 只保留 inline banner（删除 toast），满足“单条可见反馈”与 a11y |
+| 题量/范围章节选择 | 未做 | 刷题首页 bento + 范围下拉属 Phase 2-2 |
+| 学习统计/错题/知识概览 bento | 未做 | Phase 2 候选，按用户决策待二期评审 |
+| 复习队列 >50 张 | 边界 | 队列位置显示为「第 i / 50+ 张」，服务端分页待 Phase 2 |
+| 阅读器滚动位置恢复 | 未做 | Phase 3（代码注释已标注） |
+| 收藏页签 | 未做 | Phase 2-5 |
+
+### E.3 提交记录
+
+- 设计文档：`docs: 新增前端交互优化与便当盒布局设计方案 v2.1`
+- 测试基线：`chore(test): 补齐缺失的 jest-dom 测试依赖`
+- Phase 0-2：`fix(data): 统一 stats queryKey 并修复数字停 0`
+- Phase 0-1：`fix(feedback): 统一错误态与登录失败反馈`
+- Phase 0-6/0-7：`fix(shell): 壳层导航与可达性统一`
+- Phase 0-8：`fix(pages): 修复刷题复习等页面交互`
+- Phase 0-3/0-4/0-5：`fix(knowledge): 修复知识体系交互并拆分路由`
+- Phase 1-1/1-2：`feat(bento): 仪表盘改为便当盒七瓦片`
+- 后端阻塞修复：`fix(review): 修复 Review 状态卡评分 500`
+
+### E.4 验证
+
+- `cd web && ./node_modules/.bin/vp check`：106 files，0 errors / 0 warnings（format+lint+type）。
+- `./node_modules/.bin/tsc --noEmit`：0 error；`./node_modules/.bin/vitest run`：15 files / 81 tests pass。
+- 浏览器（Chrome CDP，可见页）：390/768/1024/1440 × 7 路由 = 32 组合横向溢出 0；明暗主题、键盘 Tab/Escape、弹层焦点陷阱、reduced-motion、主题跟随 OS、评分成功/失败路径、刷题完整流程均已实测。
+- 未验证：真机 iOS safe-area/Safari dvh、screen reader 实际播报、CLS 精确数值、>50 张复习队列分页。
