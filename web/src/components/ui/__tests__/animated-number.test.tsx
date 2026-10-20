@@ -33,6 +33,20 @@ describe('AnimatedNumber', () => {
     expect(container.textContent).toBe('1.5');
   });
 
+  it('re-animates to a new value when the prop changes after mount', () => {
+    const { container, rerender } = render(<AnimatedNumber value={10} duration={200} />);
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(container.textContent).toBe('10');
+
+    rerender(<AnimatedNumber value={42} duration={200} />);
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(container.textContent).toBe('42');
+  });
+
   it('skips animation when reduced-motion is true', () => {
     window.matchMedia = vi.fn().mockImplementation((q: string) => ({
       matches: q.includes('reduce'),

@@ -11,11 +11,10 @@ export interface AnimatedNumberProps {
 const easeOutQuart = (t: number) => 1 - Math.pow(1 - t, 4);
 
 /**
- * Counts up from 0 to `value` on mount using rAF + easeOutQuart. Only plays
- * once per mount — subsequent prop changes do NOT re-animate (use a `key`
- * prop at the call site to force a re-mount if you want it to re-play).
- * Respects prefers-reduced-motion and pauses when document is hidden or
- * the element is off-screen.
+ * Counts from the currently displayed number to `value` using rAF + easeOutQuart.
+ * Re-animates when `value` changes, so async data that arrives after mount is
+ * shown immediately instead of freezing at 0. Respects prefers-reduced-motion
+ * and skips animation when the document is hidden or the element is off-screen.
  */
 export function AnimatedNumber({
   value,
@@ -25,53 +24,59 @@ export function AnimatedNumber({
 }: AnimatedNumberProps) {
   const reduced = useReducedMotion();
   const [display, setDisplay] = useState(reduced ? value : 0);
+  const displayRef = useRef(reduced ? value : 0);
   const rafRef = useRef<number | null>(null);
-  const startRef = useRef<number | null>(null);
   const elRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
-    if (reduced) {
-      setDisplay(value);
+    const target = value;
+    const from = displayRef.current;
+
+    const finish = () => {
+      displayRef.current = target;
+      setDisplay(target);
+    };
+
+    if (reduced || (typeof document !== 'undefined' && document.hidden)) {
+      finish();
       return;
     }
-    // Skip if document is hidden
-    if (typeof document !== 'undefined' && document.hidden) {
-      setDisplay(value);
+    // Ignore sub-pixel deltas and off-screen elements (no visible animation).
+    if (Math.abs(target - from) < 0.5) {
+      finish();
       return;
     }
-    // Skip if off-screen (getBoundingClientRect is available in all browsers + jsdom)
     const el = elRef.current;
     if (el) {
       const rect = el.getBoundingClientRect();
       if (rect.bottom < 0 || rect.top > window.innerHeight) {
-        setDisplay(value);
+        finish();
         return;
       }
     }
 
-    startRef.current = null;
     const start = performance.now();
-
     function step(now: number) {
-      if (startRef.current === null) startRef.current = now;
-      const elapsed = now - start;
-      const t = Math.min(1, elapsed / duration);
-      const eased = easeOutQuart(t);
-      const current = eased * value;
+      const t = Math.min(1, (now - start) / duration);
+      const current = from + (target - from) * easeOutQuart(t);
+      displayRef.current = current;
       setDisplay(current);
       if (t < 1) {
         rafRef.current = requestAnimationFrame(step);
       } else {
-        setDisplay(value);
         rafRef.current = null;
+        finish();
       }
     }
+
     rafRef.current = requestAnimationFrame(step);
     return () => {
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // mount-only per spec
+  }, [value, duration, reduced]);
 
   return (
     <span ref={elRef} className={className} style={{ fontVariantNumeric: 'tabular-nums' }}>

@@ -9,8 +9,8 @@ import type { GradeResponse, PaginatedResponse, ReviewItem, ReviewStats } from '
 
 export const reviewKeys = {
   all: ['review'] as const,
-  due: (itemType?: string) => ['review-due', itemType ?? 'all'] as const,
-  stats: () => ['review-stats'] as const,
+  due: (itemType?: string) => ['review', 'due', itemType ?? 'all'] as const,
+  stats: () => ['review', 'stats'] as const,
 } as const;
 
 // ─── useReviewDue ──────────────────────────────────────────────────────
@@ -63,9 +63,7 @@ export function useReviewGrade() {
       return resp.data.data as GradeResponse;
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: reviewKeys.due() });
-      void queryClient.invalidateQueries({ queryKey: ['review-due'] });
-      void queryClient.invalidateQueries({ queryKey: reviewKeys.stats() });
+      void queryClient.invalidateQueries({ queryKey: reviewKeys.all });
     },
   });
 }
@@ -82,8 +80,7 @@ export function useReviewMigrate() {
       return resp.data.data as { migrated: number };
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['review-due'] });
-      void queryClient.invalidateQueries({ queryKey: reviewKeys.stats() });
+      void queryClient.invalidateQueries({ queryKey: reviewKeys.all });
     },
   });
 }
