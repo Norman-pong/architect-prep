@@ -74,7 +74,14 @@ func (s *Service) GradeCard(ctx context.Context, userID int, itemType string, it
 
 	ri.Stability = newCard.Stability
 	ri.Difficulty = newCard.Difficulty
-	ri.Step = newCard.Step
+	// Graduated cards (Review state) can come back with a nil Step from FSRS,
+	// but review_items.step is NOT NULL. Persist the last known step (0 for fresh
+	// items) instead of writing NULL.
+	if newCard.Step != nil {
+		ri.Step = newCard.Step
+	} else {
+		ri.Step = &step
+	}
 	ri.Due = newCard.Due.UTC().Format(sqliteTimeFormat)
 	ri.State = int(newCard.State)
 	ri.Reps++
