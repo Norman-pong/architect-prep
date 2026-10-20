@@ -40,3 +40,5 @@ Thumbs.db
 
 # SDD runtime cache (review artifacts, not source)
 .sdd/
+
+screenshots/
