@@ -1,6 +1,23 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { applyMasteryToProgress } from './mastery';
 import type { Chapter, LearningProgress, PointStatus, KnowledgePoint } from './types';
+
+// ── Query keys / options ─────────────────────────────
+
+/** Chapter points rarely change, and the reader cross-prefetches neighbours, so
+ *  one cache entry per chapter is kept warm for 5 minutes (design §5.3). */
+const CHAPTER_POINTS_STALE_TIME = 5 * 60 * 1000;
+
+export const chapterPointsQueryOptions = (chapterId: number) =>
+  queryOptions({
+    queryKey: ['knowledge-points', chapterId] as const,
+    queryFn: async () => {
+      const resp = await api.get(`/knowledge/chapters/${chapterId}/points`);
+      return resp.data.data as KnowledgePoint[];
+    },
+    staleTime: CHAPTER_POINTS_STALE_TIME,
+  });
 
 // ── Queries ──────────────────────────────────────────
 
@@ -11,18 +28,6 @@ export function useChapters() {
       const resp = await api.get('/knowledge/chapters');
       return resp.data.data as Chapter[];
     },
-    staleTime: 5 * 60 * 1000,
-  });
-}
-
-export function useChapterPoints(chapterId: number | undefined) {
-  return useQuery({
-    queryKey: ['knowledge-points', chapterId],
-    queryFn: async () => {
-      const resp = await api.get(`/knowledge/chapters/${chapterId}/points`);
-      return resp.data.data as KnowledgePoint[];
-    },
-    enabled: !!chapterId,
     staleTime: 5 * 60 * 1000,
   });
 }
@@ -78,15 +83,45 @@ export function useRecordView() {
   });
 }
 
+export interface ToggleMasteredVariables {
+  pointId: number;
+  mastered: boolean;
+  /** Known by both call sites (outline rows / reader) so the optimistic
+   *  per-chapter counters can be updated without another lookup. */
+  chapterId?: number;
+}
+
+/** Optimistic toggle (I-06): flip the cached progress/point status immediately,
+ *  roll back on failure, then reconcile with the server. */
 export function useToggleMastered() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ pointId, mastered }: { pointId: number; mastered: boolean }) => {
+    mutationFn: async ({ pointId, mastered }: ToggleMasteredVariables) => {
       const resp = await api.post(`/learning/points/${pointId}/master`, { mastered });
       return resp.data.data;
     },
-    onSuccess: (_data, variables) => {
+    onMutate: async ({ pointId, mastered, chapterId }) => {
+      await queryClient.cancelQueries({ queryKey: ['learning'] });
+
+      const previousProgress = queryClient.getQueryData<LearningProgress>(['learning', 'progress']);
+      const previousStatus = queryClient.getQueryData<PointStatus>(['learning', 'point', pointId]);
+
+      queryClient.setQueryData<LearningProgress>(['learning', 'progress'], (old) =>
+        applyMasteryToProgress(old, pointId, chapterId, mastered),
+      );
+      queryClient.setQueryData<PointStatus>(['learning', 'point', pointId], (old) =>
+        old ? { ...old, mastered } : old,
+      );
+
+      return { previousProgress, previousStatus, pointId };
+    },
+    onError: (_error, _variables, context) => {
+      if (!context) return;
+      queryClient.setQueryData(['learning', 'progress'], context.previousProgress);
+      queryClient.setQueryData(['learning', 'point', context.pointId], context.previousStatus);
+    },
+    onSettled: (_data, _error, variables) => {
       void queryClient.invalidateQueries({ queryKey: ['learning'] });
       void queryClient.invalidateQueries({ queryKey: ['learning', 'point', variables.pointId] });
     },
@@ -128,66 +163,4 @@ export function getMasteryLevel(
   if (ratio < 0.3) return 'destructive';
   if (ratio < 0.7) return 'warning';
   return 'primary';
-}
-
-// ── Navigation helpers ───────────────────────────────
-
-export function findCrossChapterNext(
-  currentChapterId: number,
-  currentPointId: number,
-  allChapters: Chapter[] | undefined,
-  chapterPointsMap: Map<number, KnowledgePoint[]>,
-): { chapterId: number; pointId: number } | null {
-  if (!allChapters) return null;
-
-  const points = chapterPointsMap.get(currentChapterId) ?? [];
-  const idx = points.findIndex((p) => p.id === currentPointId);
-
-  // Same chapter next point
-  if (idx >= 0 && idx < points.length - 1) {
-    return { chapterId: currentChapterId, pointId: points[idx + 1].id };
-  }
-
-  // Cross to next chapter
-  const sortedChapters = [...allChapters].sort((a, b) => a.chapter_no - b.chapter_no);
-  const chIdx = sortedChapters.findIndex((c) => c.id === currentChapterId);
-  if (chIdx >= 0 && chIdx < sortedChapters.length - 1) {
-    const nextCh = sortedChapters[chIdx + 1];
-    const nextPoints = chapterPointsMap.get(nextCh.id) ?? [];
-    if (nextPoints.length > 0) {
-      return { chapterId: nextCh.id, pointId: nextPoints[0].id };
-    }
-  }
-
-  return null;
-}
-
-export function findCrossChapterPrev(
-  currentChapterId: number,
-  currentPointId: number,
-  allChapters: Chapter[] | undefined,
-  chapterPointsMap: Map<number, KnowledgePoint[]>,
-): { chapterId: number; pointId: number } | null {
-  if (!allChapters) return null;
-
-  const points = chapterPointsMap.get(currentChapterId) ?? [];
-  const idx = points.findIndex((p) => p.id === currentPointId);
-
-  // Same chapter prev point
-  if (idx > 0) {
-    return { chapterId: currentChapterId, pointId: points[idx - 1].id };
-  }
-
-  // Cross to prev chapter
-  const sortedChapters = [...allChapters].sort((a, b) => a.chapter_no - b.chapter_no);
-  const chIdx = sortedChapters.findIndex((c) => c.id === currentChapterId);
-  if (chIdx > 0) {
-    const prevCh = sortedChapters[chIdx - 1];
-    const prevPoints = chapterPointsMap.get(prevCh.id) ?? [];
-    if (prevPoints.length > 0) {
-      return { chapterId: prevCh.id, pointId: prevPoints[prevPoints.length - 1].id };
-    }
-  }
-
-  return null;
 }

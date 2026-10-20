@@ -1,9 +1,11 @@
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface KnowledgeOutlineSkeletonProps {
-  /** mobile: 12 flat rows. desktop: 12 expanded-card placeholders + toolbar row. */
+  /** mobile: flat rows. desktop: expanded-card placeholders + toolbar row. */
   variant?: 'mobile' | 'desktop';
-  /** Number of placeholder rows. Defaults to 12 to match the typical chapter count. */
+  /** Number of placeholder rows. Callers pass the chapter count (from cached
+   *  chapters or `progress.per_chapter`) so the skeleton height matches the
+   *  resolved list and the page does not jump when data arrives (I-20). */
   rows?: number;
 }
 

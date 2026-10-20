@@ -1,30 +1,54 @@
 import { ArrowRight } from 'lucide-react';
 
 import { EmptyState, EmptyIllustration } from '@/components/empty-state';
+import { ErrorState } from '@/components/ui/error-state';
 import { KnowledgeOutlineSkeleton } from './knowledge-skeleton';
 import { cn } from '@/lib/utils';
 import type { Chapter, LearningProgress } from './types';
 import { getChapterProgress, isChapterCompleted } from './hooks';
 
+const FOCUS_RING =
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
+
 interface MobileOutlineProps {
   chapters: Chapter[] | undefined;
   progress: LearningProgress | undefined;
   isLoading: boolean;
+  isError: boolean;
+  progressError: boolean;
+  onRetry: () => void;
+  onRetryProgress: () => void;
   onSelectChapter: (chapterId: number) => void;
   lastProgress: { chapter_id: number; point_id: number; title: string } | null;
   onContinue: () => void;
+  skeletonRows: number;
 }
 
 export function MobileOutline({
   chapters,
   progress,
   isLoading,
+  isError,
+  progressError,
+  onRetry,
+  onRetryProgress,
   onSelectChapter,
   lastProgress,
   onContinue,
+  skeletonRows,
 }: MobileOutlineProps) {
   if (isLoading) {
-    return <KnowledgeOutlineSkeleton variant="mobile" />;
+    return <KnowledgeOutlineSkeleton variant="mobile" rows={skeletonRows} />;
+  }
+
+  if (isError) {
+    return (
+      <ErrorState
+        title="章节目录加载失败"
+        description="知识体系数据暂时无法获取，请检查网络后重试。"
+        onRetry={onRetry}
+      />
+    );
   }
 
   if (!chapters || chapters.length === 0) {
@@ -37,49 +61,56 @@ export function MobileOutline({
     );
   }
 
-  const sorted = [...chapters].sort((a, b) => a.chapter_no - b.chapter_no);
+  const sortedChapters = [...chapters].sort((a, b) => a.chapter_no - b.chapter_no);
 
   return (
     <div className="flex flex-col">
+      {progressError && (
+        <div className="pb-3">
+          <ErrorState
+            compact
+            title="学习进度加载失败"
+            description="章节仍可阅读，重试可恢复进度显示。"
+            onRetry={onRetryProgress}
+          />
+        </div>
+      )}
+
       {/* Chapter list — per mobile-learning-design §1.2 视图 A:
-          chapter row navigates to the reader view (?chapter=X). The first
-          point is auto-selected by index.tsx useEffect. No inline expand. */}
+          a chapter row opens the reader at that chapter's first point. */}
       <div className="divide-y divide-border pb-16">
-        {sorted.map((ch) => {
-          const { total, mastered } = getChapterProgress(ch.id, progress);
-          const completed = isChapterCompleted(ch.id, progress);
+        {sortedChapters.map((chapter) => {
+          const { total, mastered } = getChapterProgress(chapter.id, progress);
+          const completed = isChapterCompleted(chapter.id, progress);
 
           return (
             <button
-              key={ch.id}
+              key={chapter.id}
               type="button"
-              onClick={() => onSelectChapter(ch.id)}
-              aria-label={`${ch.chapter_no} ${ch.title}`}
+              onClick={() => onSelectChapter(chapter.id)}
+              aria-label={`${chapter.chapter_no} ${chapter.title}，共 ${total} 个知识点，已学 ${mastered} 个`}
               className={cn(
-                'flex w-full min-h-[56px] items-center gap-3 px-3 py-3 text-left transition-colors',
+                'flex min-h-[56px] w-full items-center gap-3 px-3 py-3 text-left transition-colors',
                 'hover:bg-muted/50 active:bg-muted/70',
                 completed && 'border-l-4 border-l-success bg-success/5',
+                FOCUS_RING,
               )}
             >
-              {/* Chapter number badge */}
-              <span
-                className={cn(
-                  'flex h-10 w-10 shrink-0 items-center justify-center rounded-full',
-                  'bg-primary text-sm font-bold text-primary-foreground',
-                )}
-              >
-                {ch.chapter_no}
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+                {chapter.chapter_no}
               </span>
 
-              {/* Title + summary */}
-              <div className="flex-1 min-w-0">
-                <div className="text-base font-medium text-foreground truncate">{ch.title}</div>
-                {ch.summary && (
-                  <p className="mt-0.5 text-xs text-muted-foreground line-clamp-1">{ch.summary}</p>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-base font-medium text-foreground">
+                  {chapter.title}
+                </span>
+                {chapter.summary && (
+                  <span className="mt-0.5 line-clamp-1 block text-xs text-muted-foreground">
+                    {chapter.summary}
+                  </span>
                 )}
-              </div>
+              </span>
 
-              {/* Progress */}
               {total > 0 && (
                 <span className="shrink-0 text-xs text-muted-foreground">
                   {mastered}/{total}
@@ -87,7 +118,6 @@ export function MobileOutline({
                 </span>
               )}
 
-              {/* Navigate-to-reader indicator */}
               <span className="shrink-0 text-muted-foreground" aria-hidden>
                 <ArrowRight className="size-5" />
               </span>
@@ -96,22 +126,19 @@ export function MobileOutline({
         })}
       </div>
 
-      {/* Continue learning FAB — icon-only on mobile to avoid covering the last chapter row.
-          (Desktop layouts keep the wider labeled version via responsive classes.) */}
       {lastProgress && (
         <button
           type="button"
           onClick={onContinue}
-          aria-label="继续上次学习"
+          aria-label={`继续上次学习：${lastProgress.title}`}
           title="继续学习"
           className={cn(
-            'fixed bottom-4 right-4 z-40 flex items-center gap-2',
-            'h-12 w-12 justify-center rounded-full bg-primary text-primary-foreground',
-            'shadow-lg transition-transform hover:scale-105 active:scale-95',
-            'sm:h-12 sm:w-auto sm:px-4 sm:gap-2',
+            'fixed bottom-4 right-4 z-sticky flex h-12 w-12 items-center justify-center gap-2 rounded-full bg-primary text-primary-foreground shadow-lg',
+            'transition-transform hover:scale-105 active:scale-95 sm:w-auto sm:px-4',
+            FOCUS_RING,
           )}
         >
-          <ArrowRight className="size-5" />
+          <ArrowRight className="size-5" aria-hidden />
           <span className="hidden sm:inline">继续学习</span>
         </button>
       )}

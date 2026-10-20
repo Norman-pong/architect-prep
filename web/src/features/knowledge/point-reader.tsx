@@ -1,67 +1,116 @@
 import { useEffect } from 'react';
-import { useNavigate } from '@tanstack/react-router';
-import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
-import { api } from '@/lib/api';
 import { Markdown } from '@/components/markdown';
-import { ChevronLeft, ChevronRight, Search, Menu, Check, FileText } from 'lucide-react';
-import type { Chapter, KnowledgePoint, PointStatus, LearningProgress } from './types';
+import { ErrorState } from '@/components/ui/error-state';
+import { ChevronLeft, Search, ListTree } from 'lucide-react';
+import { ChapterExamLink } from './chapter-exam-link';
+import { ReaderToolbar } from './reader-toolbar';
+import {
+  findCrossChapterNext,
+  findCrossChapterPrev,
+  resolveTargetChapter,
+  resolveTargetPointTitle,
+} from './navigation';
 import { getChapterProgress, isChapterCompleted } from './hooks';
+import type { Chapter, KnowledgePoint, LearningProgress } from './types';
+
+const FOCUS_RING =
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 
 interface PointReaderProps {
   chapter: Chapter | undefined;
   point: KnowledgePoint | undefined;
-  pointStatus: PointStatus | undefined;
+  isMastered: boolean;
   progress: LearningProgress | undefined;
   chapters: Chapter[] | undefined;
-  pointsMap: Map<number, KnowledgePoint[]>;
+  pointsByChapter: Map<number, KnowledgePoint[]>;
+  /** True while chapters and/or the current chapter's points are loading (I-04). */
   isLoading: boolean;
+  /** Chapters or the current chapter's points failed to load. */
+  isError: boolean;
+  onRetry: () => void;
   onBack: () => void;
   onNavigate: (chapterId: number, pointId: number) => void;
-  onToggleMastered: (pointId: number, mastered: boolean) => void;
+  /** Jump to a chapter selected by prev/next while its points still load. */
+  onNavigateToChapter: (chapterId: number, edge: 'first' | 'last') => void;
+  onToggleMastered: (pointId: number, chapterId: number, mastered: boolean) => void;
+  isMasteredPending: boolean;
   onOpenDrawer: () => void;
   onOpenSearch: () => void;
   recordView: (pointId: number) => void;
 }
+
 export function PointReader({
   chapter,
   point,
-  pointStatus,
+  isMastered,
   progress,
   chapters,
-  pointsMap,
+  pointsByChapter,
   isLoading,
+  isError,
+  onRetry,
   onBack,
   onNavigate,
+  onNavigateToChapter,
   onToggleMastered,
+  isMasteredPending,
   onOpenDrawer,
   onOpenSearch,
   recordView,
 }: PointReaderProps) {
-  // Record view when point changes
+  // Record view when the point changes. Skipped until the point actually exists,
+  // so a loading/error frame never records a bogus id.
   useEffect(() => {
-    if (point?.id) {
-      recordView(point.id);
-    }
+    if (point?.id) recordView(point.id);
   }, [point?.id, recordView]);
 
   if (isLoading) {
     return (
-      <div className="space-y-4 p-3">
+      <div className="space-y-4 p-3" role="status" aria-label="加载知识点中" aria-busy="true">
         <div className="h-12 w-full animate-pulse rounded-md bg-muted" />
         <div className="h-96 w-full animate-pulse rounded-md bg-muted" />
       </div>
     );
   }
 
-  if (!chapter || !point) {
+  if (isError) {
     return (
-      <div className="py-12 text-center">
-        <p className="text-muted-foreground">知识点不存在或已删除。</p>
+      <div className="space-y-4 p-3">
+        <ErrorState
+          title="知识点加载失败"
+          description="内容暂时无法获取，请检查网络后重试。"
+          onRetry={onRetry}
+        />
         <button
           type="button"
           onClick={onBack}
-          className="mt-4 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+          className={cn(
+            'mx-auto flex min-h-11 items-center rounded-md border border-border px-4 text-sm font-medium text-foreground',
+            'transition-colors hover:bg-muted',
+            FOCUS_RING,
+          )}
+        >
+          返回目录
+        </button>
+      </div>
+    );
+  }
+
+  if (!chapter || !point) {
+    return (
+      <div className="space-y-3 py-12 text-center">
+        <p className="text-muted-foreground">
+          {chapter ? '知识点不存在或已删除。' : '章节不存在或已删除。'}
+        </p>
+        <button
+          type="button"
+          onClick={onBack}
+          className={cn(
+            'mx-auto flex min-h-11 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground',
+            'transition-colors hover:bg-primary-hover',
+            FOCUS_RING,
+          )}
         >
           返回目录
         </button>
@@ -71,34 +120,48 @@ export function PointReader({
 
   const { total, mastered } = getChapterProgress(chapter.id, progress);
   const chapterCompleted = isChapterCompleted(chapter.id, progress);
-  const isMastered = pointStatus?.mastered ?? false;
-  // Build flat sorted list of all points across all chapters for cross-chapter navigation
-  const sortedChapters = chapters ? [...chapters].sort((a, b) => a.chapter_no - b.chapter_no) : [];
-  const allPointsFlat: KnowledgePoint[] = sortedChapters.flatMap(
-    (ch) => pointsMap.get(ch.id) ?? [],
-  );
-  const currentIdx = allPointsFlat.findIndex((p) => p.id === point.id);
-  const prevPoint = currentIdx > 0 ? allPointsFlat[currentIdx - 1] : null;
-  const nextPoint = currentIdx < allPointsFlat.length - 1 ? allPointsFlat[currentIdx + 1] : null;
-  // Determine target chapter for prev/next
-  const prevChapter = prevPoint
-    ? sortedChapters.find((ch) => ch.id === prevPoint.chapter_id)
-    : null;
-  const nextChapter = nextPoint
-    ? sortedChapters.find((ch) => ch.id === nextPoint.chapter_id)
-    : null;
+  const getPoints = (chapterId: number) => pointsByChapter.get(chapterId);
+  const prevTarget = findCrossChapterPrev(chapter.id, point.id, chapters, getPoints);
+  const nextTarget = findCrossChapterNext(chapter.id, point.id, chapters, getPoints);
+  const prevTitle = resolveTargetPointTitle(pointsByChapter, prevTarget);
+  const nextTitle = resolveTargetPointTitle(pointsByChapter, nextTarget);
+  const prevChapter = resolveTargetChapter(chapters, prevTarget);
+  const nextChapter = resolveTargetChapter(chapters, nextTarget);
+  const prevLabel = prevTitle
+    ? `上一节: ${prevTitle}`
+    : prevChapter
+      ? `上一章: ${prevChapter.title}`
+      : '已是第一个';
+  const nextLabel = nextTitle
+    ? `下一节: ${nextTitle}`
+    : nextChapter
+      ? `下一章: ${nextChapter.title}`
+      : '已是最后一个';
 
   return (
-    <div className="flex flex-col">
+    // min-h + negative bottom margin mirror the authenticated layout's content
+    // padding (mobile: pt-3 + pb(12px + safe-area); desktop: md:p-8 = 32px). That
+    // makes the scroll area exactly one viewport tall and lets the sticky footer
+    // sit flush with the viewport bottom for short chapters instead of floating
+    // mid-document (I-16). The footer's own safe-area padding keeps its content
+    // above the home indicator.
+    <div className="flex min-h-[calc(100dvh_-_0.75rem)] flex-col -mb-[calc(0.75rem_+_env(safe-area-inset-bottom))] md:min-h-[calc(100dvh_-_2rem)] md:-mb-8">
+      <h1 className="sr-only">
+        {chapter.chapter_no}. {chapter.title}
+      </h1>
+
       {/* Top sticky bar */}
-      <div className="sticky top-0 z-30 flex h-12 items-center justify-between gap-2 border-b border-border bg-card px-3">
+      <div className="sticky top-0 z-sticky flex h-12 items-center justify-between gap-2 border-b border-border bg-card px-3">
         <button
           type="button"
           onClick={onBack}
-          className="flex h-11 w-11 items-center justify-center rounded-md text-foreground transition-colors hover:bg-muted"
+          className={cn(
+            'flex h-11 w-11 items-center justify-center rounded-md text-foreground transition-colors hover:bg-muted',
+            FOCUS_RING,
+          )}
           aria-label="返回目录"
         >
-          <ChevronLeft className="size-5" />
+          <ChevronLeft className="size-5" aria-hidden />
         </button>
 
         <span className="flex-1 truncate text-sm font-medium text-foreground">
@@ -109,24 +172,30 @@ export function PointReader({
           <button
             type="button"
             onClick={onOpenSearch}
-            className="flex h-11 w-11 items-center justify-center rounded-md text-foreground transition-colors hover:bg-muted"
+            className={cn(
+              'flex h-11 w-11 items-center justify-center rounded-md text-foreground transition-colors hover:bg-muted',
+              FOCUS_RING,
+            )}
             aria-label="搜索"
           >
-            <Search className="size-5" />
+            <Search className="size-5" aria-hidden />
           </button>
           <button
             type="button"
             onClick={onOpenDrawer}
-            className="flex h-11 w-11 items-center justify-center rounded-md text-foreground transition-colors hover:bg-muted"
+            className={cn(
+              'flex h-11 w-11 items-center justify-center rounded-md text-foreground transition-colors hover:bg-muted',
+              FOCUS_RING,
+            )}
             aria-label="目录"
           >
-            <Menu className="size-5" />
+            <ListTree className="size-5" aria-hidden />
           </button>
         </div>
       </div>
 
       {/* Chapter sub-header */}
-      <div className="sticky top-12 z-20 flex h-9 items-center justify-between border-b border-border bg-background px-3">
+      <div className="sticky top-12 z-sticky flex h-9 items-center justify-between border-b border-border bg-background px-3">
         <span className="text-xs text-muted-foreground">第 {chapter.chapter_no} 章</span>
         <span
           className={cn('text-xs', chapterCompleted ? 'text-success' : 'text-muted-foreground')}
@@ -135,107 +204,26 @@ export function PointReader({
         </span>
       </div>
 
-      {/* Content */}
-      <div className="knowledge-prose flex-1 px-3 pt-4 text-base leading-relaxed md:text-sm md:leading-normal pb-[calc(100px+env(safe-area-inset-bottom))]">
+      {/* Content — flex-1 pushes the toolbar to the bottom for short articles. */}
+      <div className="knowledge-prose flex-1 px-3 pb-6 pt-4 text-base leading-relaxed md:text-sm md:leading-normal">
         <Markdown content={point.content} skipFirstHeading />
       </div>
 
-      {/* Chapter exam questions link */}
-      <ChapterExamLink chapterId={chapter.id} chapterNo={chapter.chapter_no} />
+      <ChapterExamLink chapterId={chapter.id} />
 
-      {/* Bottom sticky toolbar — safe-area inset so labels never get clipped on
-          small phones. Layout: icon-only nav buttons (with title for context)
-          on the sides, full primary action in the middle. Previously all three
-          buttons fought for equal width, which truncated the prev/next point
-          titles and made the disabled state look indistinguishable. */}
-      <div className="sticky bottom-0 z-30 flex min-h-[68px] items-center gap-2 border-t border-border bg-card px-2 pb-[env(safe-area-inset-bottom)] pt-1.5">
-        <button
-          type="button"
-          disabled={!prevPoint}
-          onClick={() => prevPoint && prevChapter && onNavigate(prevChapter.id, prevPoint.id)}
-          title={prevPoint ? `上一节: ${prevPoint.title}` : '已是第一个'}
-          aria-label={prevPoint ? `上一节: ${prevPoint.title}` : '已是第一个'}
-          className={cn(
-            'flex h-11 w-11 shrink-0 items-center justify-center rounded-md transition-colors',
-            prevPoint
-              ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-              : 'bg-muted text-muted-foreground opacity-40',
-          )}
-        >
-          <ChevronLeft className="size-5" />
-        </button>
-
-        {/* Master toggle — primary action, takes the remaining space */}
-        <button
-          type="button"
-          onClick={() => onToggleMastered(point.id, !isMastered)}
-          className={cn(
-            'flex h-11 min-h-[44px] flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 text-sm font-medium transition-colors',
-            isMastered
-              ? 'bg-success text-success-foreground'
-              : 'bg-primary text-primary-foreground hover:bg-primary-hover',
-          )}
-        >
-          <Check className="size-4" />
-          <span>{isMastered ? '已学' : '标记已学'}</span>
-        </button>
-
-        {/* Next */}
-        <button
-          type="button"
-          disabled={!nextPoint}
-          onClick={() => nextPoint && nextChapter && onNavigate(nextChapter.id, nextPoint.id)}
-          title={nextPoint ? `下一节: ${nextPoint.title}` : '已是最后一个'}
-          aria-label={nextPoint ? `下一节: ${nextPoint.title}` : '已是最后一个'}
-          className={cn(
-            'flex h-11 w-11 shrink-0 items-center justify-center rounded-md transition-colors',
-            nextPoint
-              ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-              : 'bg-muted text-muted-foreground opacity-40',
-          )}
-        >
-          <ChevronRight className="size-5" />
-        </button>
-      </div>
+      <ReaderToolbar
+        chapter={chapter}
+        point={point}
+        isMastered={isMastered}
+        isMasteredPending={isMasteredPending}
+        prevTarget={prevTarget}
+        nextTarget={nextTarget}
+        prevLabel={prevLabel}
+        nextLabel={nextLabel}
+        onNavigate={onNavigate}
+        onNavigateToChapter={onNavigateToChapter}
+        onToggleMastered={onToggleMastered}
+      />
     </div>
-  );
-}
-
-function ChapterExamLink({
-  chapterId,
-  chapterNo: _chapterNo,
-}: {
-  chapterId: number;
-  chapterNo: number;
-}) {
-  const navigate = useNavigate();
-  const { data: count } = useQuery({
-    queryKey: ['practice', 'chapter-count', chapterId],
-    queryFn: async () => {
-      const resp = await api.get('/practice/questions', {
-        params: { chapter_id: chapterId, page: 1, page_size: 1 },
-      });
-      return resp.data.data.total as number;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
-
-  if (!count || count === 0) return null;
-
-  return (
-    <button
-      type="button"
-      onClick={() => void navigate({ to: '/practice' })}
-      className="mx-3 mb-2 flex items-center justify-between rounded-lg border border-border bg-muted/30 px-4 py-3 transition-colors hover:bg-muted/60"
-    >
-      <div className="flex items-center gap-2">
-        <FileText className="size-4 text-primary" />
-        <span className="text-sm font-medium text-foreground">本章真题</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">{count} 题</span>
-        <ChevronRight className="size-4 text-muted-foreground" />
-      </div>
-    </button>
   );
 }

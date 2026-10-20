@@ -24,13 +24,20 @@ export type DialogBackdropProps = React.ComponentPropsWithoutRef<typeof BaseDial
   className?: string;
 };
 
+/**
+ * Base UI exposes its enter/exit animation state as `data-starting-style` /
+ * `data-ending-style` (plus `data-open` / `data-closed`). Consumers style the
+ * "resting" state as the default and the off-screen/transparent state on those
+ * attributes to get a real entrance animation (I-13).
+ */
 export const DialogBackdrop = React.forwardRef<HTMLDivElement, DialogBackdropProps>(
   ({ className, ...props }, ref) => (
     <BaseDialog.Backdrop
       ref={ref}
       className={cn(
         'fixed inset-0 z-dialog bg-foreground/40 backdrop-blur-sm',
-        'transition-opacity data-[state=open]:opacity-100 data-[state=closed]:opacity-0',
+        'transition-opacity duration-200',
+        'data-[starting-style]:opacity-0 data-[ending-style]:opacity-0',
         className,
       )}
       {...props}
@@ -49,7 +56,7 @@ export const DialogPopup = React.forwardRef<HTMLDivElement, DialogPopupProps>(
       ref={ref}
       className={cn(
         'fixed left-1/2 top-1/2 z-dialog grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 rounded-lg border border-border bg-card p-6 text-card-foreground shadow-lg',
-        'transition-all data-[state=open]:opacity-100 data-[state=closed]:opacity-0 data-[state=closed]:translate-y-2',
+        'transition-opacity duration-200 data-[starting-style]:opacity-0 data-[ending-style]:opacity-0',
         className,
       )}
       {...props}
