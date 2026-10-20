@@ -4,12 +4,14 @@
     "subtitle": "Knowledge + Practice"
   },
   "nav": {
+    "dashboard": "Dashboard",
     "knowledge": "Knowledge",
     "practice": "Practice",
     "wrongQuestions": "Wrong Questions",
     "review": "Review",
     "stats": "Statistics",
-    "settings": "Settings"
+    "settings": "Settings",
+    "groupConventional": "General"
   },
   "auth": {
     "login": "Login",
@@ -20,7 +22,18 @@
     "verifyCode": "Verification Code",
     "nickname": "Nickname",
     "loginButton": "Login / Register",
-    "codeSent": "Code sent"
+    "codeSent": "Code sent",
+    "userMenu": "User menu"
+  },
+  "a11y": {
+    "skipToContent": "Skip to content",
+    "mainNavigation": "Main navigation",
+    "closeMenu": "Close menu",
+    "openMenu": "Open menu",
+    "back": "Back",
+    "notifications": "Notifications",
+    "closeToast": "Close",
+    "themeOptions": "Theme"
   },
   "theme": {
     "light": "Light",

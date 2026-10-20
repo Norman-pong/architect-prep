@@ -1,48 +1,51 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useRouterState } from '@tanstack/react-router';
-import { cn } from '@/lib/utils';
 import {
-  AlertCircleIcon,
-  BarChartIcon,
-  BookOpenIcon,
-  CloseIcon,
-  PencilIcon,
-  ReviewIcon,
-  SettingsIcon,
-} from '@/components/ui/icon';
+  AlertCircle,
+  BarChart3,
+  BookOpen,
+  LayoutDashboard,
+  Pencil,
+  RefreshCw,
+  Settings,
+  X,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/auth-store';
 import { UserMenu } from './user-menu';
 
-import type { IconProps } from '@/components/ui/icon';
+import type { LucideIcon } from 'lucide-react';
 
 type NavItem = {
   key: string;
   path: string;
-  icon: React.ComponentType<IconProps>;
+  icon: LucideIcon;
 };
 
 type NavGroup = {
-  label?: string;
+  /** i18n key for the group heading; omitted for the unlabelled primary group. */
+  labelKey?: string;
   items: readonly NavItem[];
 };
 
-// Group nav so the auth route (review/knowledge/practice/wrong-questions) lives
-// above the personal route (stats/settings), mirroring the newapi sidebar layout.
+// Group nav so the auth route (dashboard/review/knowledge/practice/wrong-questions)
+// lives above the personal route (stats/settings), mirroring the newapi sidebar layout.
 const navGroups: readonly NavGroup[] = [
   {
     items: [
-      { key: 'nav.review', path: '/review', icon: ReviewIcon },
-      { key: 'nav.knowledge', path: '/knowledge', icon: BookOpenIcon },
-      { key: 'nav.practice', path: '/practice', icon: PencilIcon },
-      { key: 'nav.wrongQuestions', path: '/wrong-questions', icon: AlertCircleIcon },
+      { key: 'nav.dashboard', path: '/', icon: LayoutDashboard },
+      { key: 'nav.review', path: '/review', icon: RefreshCw },
+      { key: 'nav.knowledge', path: '/knowledge', icon: BookOpen },
+      { key: 'nav.practice', path: '/practice', icon: Pencil },
+      { key: 'nav.wrongQuestions', path: '/wrong-questions', icon: AlertCircle },
     ],
   },
   {
-    label: '常规',
+    labelKey: 'nav.groupConventional',
     items: [
-      { key: 'nav.stats', path: '/stats', icon: BarChartIcon },
-      { key: 'nav.settings', path: '/settings', icon: SettingsIcon },
+      { key: 'nav.stats', path: '/stats', icon: BarChart3 },
+      { key: 'nav.settings', path: '/settings', icon: Settings },
     ],
   },
 ];
@@ -69,6 +72,12 @@ function useIsMobile(): boolean {
   return isMobile;
 }
 
+/** `/` must match exactly, every other route also matches its sub-paths. */
+function isNavItemActive(pathname: string, path: string): boolean {
+  if (path === '/') return pathname === '/';
+  return pathname === path || pathname.startsWith(`${path}/`);
+}
+
 export function Sidebar({ mobileOpen = false, onNavigate, onClose }: SidebarProps) {
   const { t } = useTranslation();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -92,21 +101,21 @@ export function Sidebar({ mobileOpen = false, onNavigate, onClose }: SidebarProp
         onClick={onClose}
         aria-hidden="true"
         className={cn(
-          'fixed inset-0 z-40 bg-foreground/40 backdrop-blur-sm transition-opacity md:hidden',
+          'fixed inset-0 z-backdrop bg-foreground/40 backdrop-blur-sm transition-opacity md:hidden',
           mobileOpen ? 'opacity-100' : 'pointer-events-none opacity-0',
         )}
       />
 
       <aside
-        aria-label="Primary navigation"
+        aria-label={t('a11y.mainNavigation')}
         className={cn(
           // B-011: h-full makes the flex column stretch to the parent
-          // h-screen so the nav (flex-1) can push the user block to the
+          // h-dvh so the nav (flex-1) can push the user block to the
           // bottom. Without h-full the aside collapses to auto-height and
           // the user card sits wherever the nav ends.
           'flex h-full w-60 flex-col border-r border-sidebar-border bg-sidebar',
           // Mobile: fixed drawer that slides in/out
-          'fixed inset-y-0 left-0 z-[60] transform transition-transform duration-200 ease-out md:static md:translate-x-0',
+          'fixed inset-y-0 left-0 z-drawer transform transition-transform duration-200 ease-out md:static md:translate-x-0',
           mobileOpen
             ? 'translate-x-0'
             : '-translate-x-full pointer-events-none md:pointer-events-auto',
@@ -115,16 +124,22 @@ export function Sidebar({ mobileOpen = false, onNavigate, onClose }: SidebarProp
         inert={isMobile && !mobileOpen ? true : undefined}
         aria-hidden={isMobile && !mobileOpen ? true : undefined}
       >
-        {/* Brand row */}
+        {/* Brand row — the app title doubles as the dashboard link (I-08). */}
         <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-6">
-          <span className="text-lg font-bold text-sidebar-foreground">{t('app.title')}</span>
+          <Link
+            to="/"
+            onClick={onNavigate}
+            className="min-w-0 truncate text-lg font-bold text-sidebar-foreground transition-colors hover:text-primary"
+          >
+            {t('app.title')}
+          </Link>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close menu"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-sidebar-foreground hover:bg-sidebar-accent md:hidden"
+            aria-label={t('a11y.closeMenu')}
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-sidebar-foreground hover:bg-sidebar-accent md:hidden"
           >
-            <CloseIcon size={20} />
+            <X className="size-5" />
           </button>
         </div>
 
@@ -132,21 +147,22 @@ export function Sidebar({ mobileOpen = false, onNavigate, onClose }: SidebarProp
         <nav className="flex-1 space-y-4 overflow-y-auto p-3">
           {navGroups.map((group, gIdx) => (
             <div key={gIdx} className="space-y-1">
-              {group.label && (
-                <p className="px-3 pb-1 text-[10px] font-medium uppercase tracking-wider text-sidebar-foreground/50">
-                  {group.label}
+              {group.labelKey && (
+                <p className="px-3 pb-1 text-[10px] font-medium uppercase tracking-wider text-sidebar-foreground/70">
+                  {t(group.labelKey)}
                 </p>
               )}
               {group.items.map((item) => {
-                const isActive = pathname === item.path || pathname.startsWith(`${item.path}/`);
+                const isActive = isNavItemActive(pathname, item.path);
                 const Icon = item.icon;
                 return (
                   <Link
                     key={item.path}
                     to={item.path}
                     onClick={onNavigate}
+                    aria-current={isActive ? 'page' : undefined}
                     className={cn(
-                      'group relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                      'group relative flex min-h-11 items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
                       isActive
                         ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                         : 'text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground',
@@ -162,6 +178,7 @@ export function Sidebar({ mobileOpen = false, onNavigate, onClose }: SidebarProp
                     <Icon
                       size={18}
                       className={cn(
+                        'shrink-0',
                         isActive
                           ? 'text-primary'
                           : 'text-sidebar-foreground/70 group-hover:text-sidebar-accent-foreground',
