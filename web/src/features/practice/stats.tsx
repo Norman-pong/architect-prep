@@ -1,14 +1,14 @@
 import { Link } from '@tanstack/react-router';
-import { useQuery } from '@tanstack/react-query';
 import { ArrowRight, BarChart3 } from 'lucide-react';
-import { api } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ErrorState } from '@/components/ui/error-state';
 import { cn } from '@/lib/utils';
 import { useChapters } from '@/features/knowledge/hooks';
 import { useSetHeader } from '@/components/layout/header-context';
 import { StatsSkeleton } from './stats-skeleton';
 import { AnimatedNumber } from '@/components/ui/animated-number';
-import type { ChapterStat, PracticeStats } from './types';
+import { usePracticeStats } from './queries';
+import type { ChapterStat } from './types';
 
 /** Map a 0..1 accuracy ratio to a Tailwind color class (matches knowledge mastery colors). */
 function accuracyLevel(accuracy: number): 'destructive' | 'warning' | 'primary' | 'success' {
@@ -89,13 +89,8 @@ function AccuracyRing({ accuracy, size = 96 }: { accuracy: number; size?: number
 }
 
 export function StatsPage() {
-  const { data: stats, isLoading } = useQuery({
-    queryKey: ['practice-stats'],
-    queryFn: async () => {
-      const resp = await api.get('/practice/stats');
-      return resp.data.data as PracticeStats;
-    },
-  });
+  const statsQuery = usePracticeStats();
+  const { data: stats, isLoading, isError, refetch } = statsQuery;
   const { data: chapters } = useChapters();
 
   // The page title is rendered by the layout Header; nothing else belongs in the chrome.
@@ -105,9 +100,21 @@ export function StatsPage() {
     return <StatsSkeleton />;
   }
 
+  if (isError) {
+    return (
+      <div className="mx-auto w-full max-w-5xl">
+        <ErrorState
+          title="统计数据加载失败"
+          description="暂时无法获取练习统计，请检查网络后重试。"
+          onRetry={() => void refetch()}
+        />
+      </div>
+    );
+  }
+
   if (!stats || stats.total_questions === 0) {
     return (
-      <div className="space-y-4">
+      <div className="mx-auto w-full max-w-5xl space-y-4">
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -117,7 +124,7 @@ export function StatsPage() {
             <p className="text-sm text-muted-foreground">去刷题，统计会在这里实时更新</p>
             <Link
               to="/practice"
-              className="mt-2 inline-flex h-10 items-center gap-1.5 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
+              className="mt-2 inline-flex min-h-11 items-center gap-1.5 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
             >
               开始刷题
               <ArrowRight className="size-4" />
@@ -136,7 +143,7 @@ export function StatsPage() {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto w-full max-w-5xl space-y-4">
       {/* Overview: ring + totals. On mobile (<640px) the ring and the two
           totals cards stack vertically — a 2-column row was squeezing the
           ring/buttons into a 125px column on a 390px screen. */}
@@ -173,12 +180,24 @@ export function StatsPage() {
           {sortedChapters.length === 0 ? (
             <p className="py-4 text-center text-sm text-muted-foreground">暂无章节数据</p>
           ) : (
-            sortedChapters.map((cs) => {
-              const ch = chapterMap.get(cs.chapter_id);
-              const title = ch ? `${ch.chapter_no} ${ch.title}` : `第${cs.chapter_id}章`;
+            sortedChapters.map((cs, index) => {
+              // The backend can omit chapter_id for answers whose chapter no
+              // longer exists; render that bucket as "未归类" (Phase 2 will
+              // design its treatment, here we only keep keys/text valid).
+              const chapterId = cs.chapter_id ?? 0;
+              const ch = chapterMap.get(chapterId);
+              const title =
+                ch && chapterId !== 0
+                  ? `${ch.chapter_no} ${ch.title}`
+                  : chapterId === 0
+                    ? '未归类'
+                    : `第${chapterId}章`;
               const pct = Math.round(cs.accuracy * 100);
               return (
-                <div key={cs.chapter_id} className="space-y-1">
+                <div
+                  key={chapterId === 0 ? `unclassified-${index}` : chapterId}
+                  className="space-y-1"
+                >
                   <div className="flex items-center justify-between text-sm">
                     <span className="truncate font-medium text-foreground">{title}</span>
                     <span className="ml-2 shrink-0 text-muted-foreground">

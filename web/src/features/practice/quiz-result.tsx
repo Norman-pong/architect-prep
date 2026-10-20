@@ -25,7 +25,7 @@ export function QuizResult({ result }: QuizResultProps) {
   const badgeVariant = result.is_correct ? 'success' : 'destructive';
 
   return (
-    <Card className={cn('border-2 animate-fadeIn', accentClass)}>
+    <Card role="status" aria-live="polite" className={cn('border-2 animate-fadeIn', accentClass)}>
       <CardHeader>
         <CardTitle className="flex flex-wrap items-center gap-2 text-base">
           <span className={cn('flex h-7 w-7 items-center justify-center rounded-full', pillBg)}>

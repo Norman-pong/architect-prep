@@ -8,9 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Input, Field } from '@/components/ui/input';
 import { toast } from '@/components/ui/toast';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { useThemeStore } from '@/stores/theme-store';
+import { useThemeStore, useEffectiveTheme } from '@/stores/theme-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { useSetHeader } from '@/components/layout/header-context';
+import { practiceKeys } from '@/features/practice/queries';
+import { reviewKeys } from '@/features/review/queries';
 
 // ── Settings feature ─────────────────────────────────────────────────────
 // Per B-010: account + appearance + data. Nickname is stored locally only
@@ -21,6 +23,8 @@ import { useSetHeader } from '@/components/layout/header-context';
 export function SettingsPage() {
   const { t } = useTranslation();
   const { theme, setTheme } = useThemeStore();
+  // Shows which theme is actually applied, including while "system" is active.
+  const effectiveTheme = useEffectiveTheme();
   const { auth, setUser, reset } = useAuthStore();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -32,6 +36,7 @@ export function SettingsPage() {
   // v2 (TODO): also call PUT /api/v1/auth/profile to mirror server-side.
   const [nicknameDraft, setNicknameDraft] = useState(auth.user?.nickname ?? '');
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const [clearCacheDialogOpen, setClearCacheDialogOpen] = useState(false);
 
   const handleSaveNickname = useCallback(() => {
     if (!auth.user) return;
@@ -53,28 +58,31 @@ export function SettingsPage() {
   }, [reset, queryClient, navigate]);
 
   const handleClearCache = useCallback(() => {
-    // Clear all TanStack Query caches + every localStorage key except auth.
+    // Clear TanStack Query caches for every domain that owns persistent data.
+    // Keys come from each feature's single source of truth, not ad-hoc strings.
     queryClient.removeQueries({ queryKey: ['chapters'] });
     queryClient.removeQueries({ queryKey: ['learning'] });
-    queryClient.removeQueries({ queryKey: ['practice-stats'] });
-    queryClient.removeQueries({ queryKey: ['wrong-questions'] });
+    queryClient.removeQueries({ queryKey: practiceKeys.all });
+    queryClient.removeQueries({ queryKey: reviewKeys.all });
     queryClient.removeQueries({ queryKey: ['search'] });
-    queryClient.removeQueries({ queryKey: ['review'] });
     queryClient.removeQueries({ queryKey: ['knowledge-points'] });
+    queryClient.removeQueries({ queryKey: ['favorites'] });
 
     for (let i = localStorage.length - 1; i >= 0; i--) {
       const key = localStorage.key(i);
-      if (key && key !== 'auth-storage' && key !== 'theme-storage') {
+      // Keep auth + theme preferences and the in-progress practice session:
+      // clearing cache must never destroy unsaved progress (F18).
+      if (key && key !== 'auth-storage' && key !== 'theme-storage' && key !== 'practice-session') {
         localStorage.removeItem(key);
       }
     }
     // Force re-fetch on next page by invalidating everything.
     void queryClient.invalidateQueries();
-    toast.success('缓存已清空');
+    toast.success('缓存已清空（登录信息、主题与未完成的练习已保留）');
   }, [queryClient]);
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto w-full max-w-2xl space-y-4">
       {/* ─── Account ───────────────────────────────────────────────── */}
       <Card>
         <CardHeader>
@@ -97,7 +105,7 @@ export function SettingsPage() {
               <Button
                 onClick={handleSaveNickname}
                 disabled={!nicknameDraft.trim() || nicknameDraft.trim() === auth.user?.nickname}
-                className="sm:w-28"
+                className="min-h-[44px] sm:w-28"
               >
                 保存
               </Button>
@@ -107,7 +115,7 @@ export function SettingsPage() {
             <Button
               variant="destructive"
               onClick={() => setLogoutDialogOpen(true)}
-              className="w-full sm:w-auto"
+              className="min-h-[44px] w-full sm:w-auto"
             >
               <LogOut className="size-4" />
               退出登录
@@ -120,7 +128,10 @@ export function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">外观</CardTitle>
-          <CardDescription>主题模式 — 移动端纵向排列，桌面端横向</CardDescription>
+          <CardDescription>
+            主题立即生效；「跟随系统」会随设备外观实时切换。当前实际显示：
+            {effectiveTheme === 'dark' ? '深色' : '浅色'}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {/* Mobile (<640px): 3 buttons stack vertically and stretch full
@@ -157,10 +168,16 @@ export function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">数据</CardTitle>
-          <CardDescription>清缓存保留登录信息；退出登录会清空所有数据</CardDescription>
+          <CardDescription>
+            清缓存保留登录信息、主题与未完成的练习；退出登录会清空所有数据
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Button variant="outline" onClick={handleClearCache} className="w-full sm:w-auto">
+          <Button
+            variant="outline"
+            onClick={() => setClearCacheDialogOpen(true)}
+            className="min-h-[44px] w-full sm:w-auto"
+          >
             <RefreshCw className="size-4" />
             清空缓存
           </Button>
@@ -172,6 +189,16 @@ export function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={clearCacheDialogOpen}
+        onOpenChange={setClearCacheDialogOpen}
+        title="清空本地缓存？"
+        description="将清空章节、学习记录、刷题/复习等本地缓存并重新拉取数据；登录信息、主题偏好和未完成的练习会保留。"
+        confirmLabel="清空缓存"
+        cancelLabel="取消"
+        onConfirm={handleClearCache}
+      />
 
       <ConfirmDialog
         open={logoutDialogOpen}

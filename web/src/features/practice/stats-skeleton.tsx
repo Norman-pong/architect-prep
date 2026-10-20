@@ -7,7 +7,12 @@ import { Card, CardContent } from '@/components/ui/card';
  */
 export function StatsSkeleton() {
   return (
-    <div className="space-y-4" aria-busy="true" role="status" aria-label="加载学习统计">
+    <div
+      className="mx-auto w-full max-w-5xl space-y-4"
+      aria-busy="true"
+      role="status"
+      aria-label="加载学习统计"
+    >
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-[auto_1fr] sm:items-center">
         <Card className="flex items-center justify-center p-6">
           <Skeleton variant="circle" w={96} h={96} />
